@@ -169,6 +169,16 @@ impl Token {
         true
     }
 
+    fn burn(&mut self, from: Principal, amount: Nat) -> bool {
+        let old_balance = self.icrc1_balance_of(Account {
+            owner: from,
+            subaccount: None
+        });
+        self.balances.insert(from, old_balance - amount.clone());
+        self.total_supply -= amount;
+        true
+    }
+
     fn icrc1_balance_of(&self,account: Account) -> candid::Nat {
         match self.balances.get(&account.owner) {
             None => Nat::from(0u8),
@@ -565,4 +575,30 @@ fn icrc2_transfer_from(token_id: u64, args: TransferFromArgs) -> Result<Icrc2tra
             Some(mut token) => Ok(token.icrc2_transfer_from(ic_cdk::caller(), args))
         }
     })
+}
+
+#[ic_cdk::update]
+fn mint(token_id: u64, to: Principal, amount: u64) -> bool {
+    assert!(ic_cdk::caller() == TRADE_CA.with(|ca| ca.borrow().get().clone()));
+    match TOKENS.with(|map| {
+        map.borrow().get(&token_id)
+    }) {
+        None => false,
+        Some(mut token) => {
+            token.mint(vec![(to, Nat::from(amount))])
+        }
+    }
+}
+
+#[ic_cdk::update]
+fn burn(token_id: u64, from: Principal, amount: u64) -> bool {
+    assert!(ic_cdk::caller() == TRADE_CA.with(|ca| ca.borrow().get().clone()));
+    match TOKENS.with(|map| {
+        map.borrow().get(&token_id)
+    }) {
+        None => false,
+        Some(mut token) => {
+            token.burn(from, Nat::from(amount))
+        }
+    }
 }

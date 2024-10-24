@@ -6,6 +6,7 @@ use ic_stable_structures::memory_manager::{MemoryId, MemoryManager, VirtualMemor
 use ic_stable_structures::{DefaultMemoryImpl, StableBTreeMap, StableCell, StableLog};
 use ic_stable_structures::storable::{Bound, Storable};
 use types::{Post, TokenInitArgs, TokenError};
+mod icrc;
 
 type Memory = VirtualMemory<DefaultMemoryImpl>;
 
@@ -60,17 +61,16 @@ enum Error {
     AssetNotExist,
     Unauthorized,
     CreateTokenError,
-    InsufficientPayment,
-    InsufficientBalance,
     PostNotExistInBucket,
-    TransferToMainAccountError,
-    TransferCreatorFeeError,
-    TransferToSellAccountError,
-    TokenOfAssetNotExist,
-    UnknowError,
-    SupplyNotAllowedBelowPremintAmount,
-    MintError,
-    BurnError
+    GenericError{ message: String, error_code: candid::Nat },
+    TemporarilyUnavailable,
+    InsufficientAllowance{ allowance: candid::Nat },
+    BadBurn{ min_burn_amount: candid::Nat },
+    Duplicate{ duplicate_of: candid::Nat },
+    BadFee{ expected_fee: candid::Nat },
+    CreatedInFuture{ ledger_time: u64 },
+    TooOld,
+    InsufficientFunds{ balance: candid::Nat },
 }
 
 impl Storable for Asset {
@@ -217,6 +217,15 @@ thread_local! {
             Principal::from_text("rvcxx-xiaaa-aaaan-qznha-cai").unwrap()
         ).unwrap()
     );
+
+    // main_net : ryjl3-tyaaa-aaaaa-aaaba-cai
+    // test_net : 
+    static ICP_CA: RefCell<StableCell<Principal, Memory>> = RefCell::new(
+        StableCell::init(
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(8))), 
+            Principal::from_text("ryjl3-tyaaa-aaaaa-aaaba-cai").unwrap()
+        ).unwrap()
+    )
 }
 
 #[ic_cdk::query]
@@ -471,6 +480,286 @@ fn remove(asset_id: u64) -> Result<(), Error> {
     }
 }
 
+#[ic_cdk::update]
+async fn buy(asset_id: u64, amount: u64) -> Result<(), Error> {
+    if asset_id >= ASSET_INDEX.with(|index| index.borrow().get().clone()) {
+        return Err(Error::AssetNotExist);
+    }
+    let caller = ic_cdk::caller();
+    let price = get_buy_price(asset_id, amount);
+    let creator_fee = (price * CREATOR_FEE_PERCENT) / CREATOR_PREMINT;
+
+    let transfer_from_result = icrc::icrc_2_transfer_from(
+        ICP_CA.with(|ca| ca.borrow().get().clone()), 
+        caller, 
+        ic_cdk::api::id(), 
+        price + creator_fee
+    ).await;
+
+    match transfer_from_result {
+        icrc::TransferFromResult::Err(err) => {
+            match err {
+                icrc::TransferFromError::GenericError{message, error_code } => Err(Error::GenericError { message: message, error_code: error_code }),
+                icrc::TransferFromError::TemporarilyUnavailable => Err(Error::TemporarilyUnavailable),
+                icrc::TransferFromError::InsufficientAllowance{ allowance } => Err(Error::InsufficientAllowance { allowance: allowance }),
+                icrc::TransferFromError::BadBurn{ min_burn_amount } => Err(Error::BadBurn { min_burn_amount: min_burn_amount }),
+                icrc::TransferFromError::Duplicate { duplicate_of } => Err(Error::Duplicate { duplicate_of: duplicate_of }),
+                icrc::TransferFromError::BadFee { expected_fee } => Err(Error::BadFee { expected_fee: expected_fee }),
+                icrc::TransferFromError::CreatedInFuture{ ledger_time } => Err(Error::CreatedInFuture { ledger_time: ledger_time }),
+                icrc::TransferFromError::TooOld => Err(Error::TooOld),
+                icrc::TransferFromError::InsufficientFunds{ balance } => Err(Error::InsufficientFunds { balance: balance })
+            }
+        },
+        icrc::TransferFromResult::Ok(_) => {
+            match SUPPLY_MAP.with(|map| {
+                map.borrow().get(&asset_id)
+            }) {
+                None => {
+                    SUPPLY_MAP.with(|map| {
+                        map.borrow_mut().insert(asset_id, amount)
+                    });
+                },
+                Some(old_supply) => {
+                    SUPPLY_MAP.with(|map| {
+                        map.borrow_mut().insert(asset_id, old_supply + amount)
+                    });
+                }
+            }
+            
+            match POOL_VALUE.with(|map| {
+                map.borrow().get(&asset_id)
+            }) {
+                None => {
+                    POOL_VALUE.with(|map| {
+                        map.borrow_mut().insert(asset_id, price)
+                    });
+                },
+                Some(old_value) => {
+                    POOL_VALUE.with(|map| {
+                        map.borrow_mut().insert(asset_id, old_value + price)
+                    });
+                }
+            }
+
+            match ASSET_TO_TOKEN.with(|map| {
+                map.borrow().get(&asset_id)
+            }) {
+                None => return Err(Error::GenericError { message: String::from("Not Found Token_Id"), error_code: Nat::from(400u32) }),
+                Some(token_id) => {
+                    let mint_result = ic_cdk::call::<(u64, Principal, u64, ), (bool, )>(
+                        ICP_CA.with(|ca| ca.borrow().get().clone()), 
+                        "mint", 
+                        (token_id, caller, amount, )
+                    ).await.unwrap().0;
+                    assert!(mint_result);
+
+                    TRADE_EVENT.with(|logs| {
+                        logs.borrow_mut().append(&TradeEvent {
+                            asset_id: asset_id,
+                            trade_type: TradeType::Buy,
+                            sender: caller,
+                            token_amount: amount,
+                            icp_amount: price,
+                            creator_fee: creator_fee
+                        }).unwrap()
+                    });
+                    
+                    let creator = ASSET_MAP.with(|map| {
+                        map.borrow().get(&asset_id)
+                    }).unwrap().creator;
+                    let send_creator_fee_result = icrc::icrc_1_transfer(
+                        ICP_CA.with(|ca| ca.borrow().get().clone()), 
+                        creator, 
+                        creator_fee
+                    ).await;
+                    match send_creator_fee_result {
+                        icrc::TransferResult::Err(err) => {
+                            match err {
+                                icrc::TransferError::GenericError { message, error_code } => Err(Error::GenericError { message: message, error_code: error_code }),
+                                icrc::TransferError::TemporarilyUnavailable => Err(Error::TemporarilyUnavailable),
+                                icrc::TransferError::BadBurn { min_burn_amount } => Err(Error::BadBurn { min_burn_amount: min_burn_amount }),
+                                icrc::TransferError::Duplicate { duplicate_of } => Err(Error::Duplicate { duplicate_of: duplicate_of }),
+                                icrc::TransferError::BadFee { expected_fee } => Err(Error::BadFee { expected_fee: expected_fee }),
+                                icrc::TransferError::CreatedInFuture { ledger_time } => Err(Error::CreatedInFuture { ledger_time: ledger_time }),
+                                icrc::TransferError::TooOld => Err(Error::TooOld),
+                                icrc::TransferError::InsufficientFunds { balance } => Err(Error::InsufficientFunds { balance: balance })
+                            }
+                        },
+                        icrc::TransferResult::Ok(_) => {
+                            Ok(())
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+#[ic_cdk::update]
+async fn sell(asset_id: u64, amount: u64) -> Result<(), Error> {
+    if asset_id >= ASSET_INDEX.with(|index| index.borrow().get().clone()) {
+        return Err(Error::AssetNotExist);
+    }
+    let caller = ic_cdk::caller();
+
+    let balance = icrc::icrc_1_balance_of(
+        TOKEN_CA.with(|ca| ca.borrow().get().clone()), 
+        caller
+    ).await;
+    if balance < Nat::from(amount) {
+        return Err(Error::InsufficientFunds { balance: balance });
+    }
+
+    match SUPPLY_MAP.with(|map| {
+        map.borrow().get(&asset_id)
+    }) {
+        None => Err(Error::AssetNotExist),
+        Some(supply) => {
+            if CREATOR_PREMINT + amount > supply {
+                return Err(Error::GenericError { message: String::from("Supply not allowed below premint amount"), error_code: Nat::from(400u32) });
+            }
+
+            let price = get_sell_price(asset_id, amount);
+            let creator_fee = (price * CREATOR_FEE_PERCENT) / CREATOR_PREMINT;
+
+            match ASSET_TO_TOKEN.with(|map| {
+                map.borrow().get(&asset_id)
+            }) {
+                None => return Err(Error::GenericError { message: String::from("Not Found Token_Id"), error_code: Nat::from(400u32) }),
+                Some(token_id) => {
+                    let burn_result = ic_cdk::call::<(u64, Principal, u64, ), (bool, )>(
+                        TOKEN_CA.with(|ca| ca.borrow().get().clone()), 
+                        "burn", 
+                        (token_id, caller, amount, )
+                    ).await.unwrap().0;
+                    assert!(burn_result);
+                    
+                    match SUPPLY_MAP.with(|map| {
+                        map.borrow().get(&asset_id)
+                    }) {
+                        None => return Err(Error::GenericError { message: String::from("Supply Map Error"), error_code: Nat::from(400u32) }),
+                        Some(old_supply) => {
+                            SUPPLY_MAP.with(|map| {
+                                map.borrow_mut().insert(asset_id, old_supply - amount)
+                            });
+                        }
+                    }
+
+                    match POOL_VALUE.with(|map| {
+                        map.borrow().get(&asset_id)
+                    }) {
+                        None => return Err(Error::GenericError { message: String::from("Pool Value Map Error"), error_code: Nat::from(400u32) }),
+                        Some(old_value) => {
+                            POOL_VALUE.with(|map| {
+                                map.borrow_mut().insert(asset_id, old_value - price)
+                            });
+                        }
+                    }
+
+                    TRADE_EVENT.with(|logs| {
+                        logs.borrow_mut().append(&TradeEvent {
+                            asset_id: asset_id,
+                            trade_type: TradeType::Sell,
+                            sender: caller,
+                            token_amount: amount,
+                            icp_amount: price,
+                            creator_fee: creator_fee
+                        }).unwrap()
+                    });
+
+                    let send_sell_result = icrc::icrc_1_transfer(
+                        ICP_CA.with(|ca| ca.borrow().get().clone()), 
+                        caller, 
+                        price - creator_fee
+                    ).await;
+                    match send_sell_result {
+                        icrc::TransferResult::Err(err) => {
+                            match err {
+                                icrc::TransferError::GenericError { message, error_code } => Err(Error::GenericError { message: message, error_code: error_code }),
+                                icrc::TransferError::TemporarilyUnavailable => Err(Error::TemporarilyUnavailable),
+                                icrc::TransferError::BadBurn { min_burn_amount } => Err(Error::BadBurn { min_burn_amount: min_burn_amount }),
+                                icrc::TransferError::Duplicate { duplicate_of } => Err(Error::Duplicate { duplicate_of: duplicate_of }),
+                                icrc::TransferError::BadFee { expected_fee } => Err(Error::BadFee { expected_fee: expected_fee }),
+                                icrc::TransferError::CreatedInFuture { ledger_time } => Err(Error::CreatedInFuture { ledger_time: ledger_time }),
+                                icrc::TransferError::TooOld => Err(Error::TooOld),
+                                icrc::TransferError::InsufficientFunds { balance } => Err(Error::InsufficientFunds { balance: balance })
+                            }
+                        },
+                        icrc::TransferResult::Ok(_) => {
+                            let creator = ASSET_MAP.with(|map| {
+                                map.borrow().get(&asset_id)
+                            }).unwrap().creator;
+                            let send_creator_fee_result = icrc::icrc_1_transfer(
+                                ICP_CA.with(|ca| ca.borrow().get().clone()), 
+                                creator, 
+                                creator_fee
+                            ).await;  
+                            match send_creator_fee_result {
+                                icrc::TransferResult::Err(err) => {
+                                    match err {
+                                        icrc::TransferError::GenericError { message, error_code } => Err(Error::GenericError { message: message, error_code: error_code }),
+                                        icrc::TransferError::TemporarilyUnavailable => Err(Error::TemporarilyUnavailable),
+                                        icrc::TransferError::BadBurn { min_burn_amount } => Err(Error::BadBurn { min_burn_amount: min_burn_amount }),
+                                        icrc::TransferError::Duplicate { duplicate_of } => Err(Error::Duplicate { duplicate_of: duplicate_of }),
+                                        icrc::TransferError::BadFee { expected_fee } => Err(Error::BadFee { expected_fee: expected_fee }),
+                                        icrc::TransferError::CreatedInFuture { ledger_time } => Err(Error::CreatedInFuture { ledger_time: ledger_time }),
+                                        icrc::TransferError::TooOld => Err(Error::TooOld),
+                                        icrc::TransferError::InsufficientFunds { balance } => Err(Error::InsufficientFunds { balance: balance })
+                                    }
+                                },
+                                icrc::TransferResult::Ok(_) => {
+                                    Ok(())
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+#[ic_cdk::query]
+fn get_buy_price(asset_id: u64, amount: u64) -> u64 {
+    let supply = SUPPLY_MAP.with(|map| {
+        map.borrow().get(&asset_id)
+    }).unwrap();
+    get_price(supply, amount)
+}
+
+#[ic_cdk::query]
+fn get_sell_price(asset_id: u64, amount: u64) -> u64 {
+    let supply = SUPPLY_MAP.with(|map| {
+        map.borrow().get(&asset_id)
+    }).unwrap();
+    get_price(supply - amount, amount)
+}
+
+#[ic_cdk::query]
+fn get_buy_price_after_fee(asset_id: u64, amount: u64) -> u64 {
+    let price = get_buy_price(asset_id, amount);
+    let creator_fee = (price * CREATOR_FEE_PERCENT) / CREATOR_PREMINT;
+    price - creator_fee
+}
+
+#[ic_cdk::query]
+fn get_sell_price_after_fee(asset_id: u64, amount: u64) -> u64 {
+    let price = get_sell_price(asset_id, amount);
+    let creator_fee = (price * CREATOR_FEE_PERCENT) / CREATOR_PREMINT;
+    price - creator_fee
+}
+
+fn curve(x: u64) -> u64 {
+    if x <= CREATOR_PREMINT {
+        0
+    } else {
+        (x - CREATOR_PREMINT) * (x - CREATOR_PREMINT) * (x - CREATOR_PREMINT)
+    }
+}
+
+fn get_price(supply: u64, amount: u64) -> u64 {
+    (curve(supply + amount) - curve(supply)) / CREATOR_PREMINT / CREATOR_PREMINT / 500u64
+}
 
 fn check_post_id(
     post_id: &String
