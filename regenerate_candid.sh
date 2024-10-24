@@ -18,4 +18,10 @@ candid-extractor target/wasm32-unknown-unknown/release/photo_storage.wasm > stor
 
 candid-extractor target/wasm32-unknown-unknown/release/data_analysis.wasm > data_analysis/data_analysis.did
 
+candid-extractor target/wasm32-unknown-unknown/release/trade.wasm > dawnlight/trade/trade.did
+
+candid-extractor target/wasm32-unknown-unknown/release/token.wasm > dawnlight/token/token.did
+
+candid-extractor target/wasm32-unknown-unknown/release/test_icp.wasm > test_icp/test_icp.did
+
 dfx generate

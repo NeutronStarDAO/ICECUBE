@@ -23,9 +23,6 @@ struct Asset {
 struct UserAssetIds(Vec<u64>);
 
 #[derive(CandidType, Deserialize, Debug, Clone)]
-struct UserBuyedAssetVec(Vec<(u64, u64)>); // (asset_id, amount)
-
-#[derive(CandidType, Deserialize, Debug, Clone)]
 struct CreateEvent {
     asset_id: u64,
     creator: Principal,
@@ -123,16 +120,6 @@ impl Storable for TradeEvent {
     }
 }
 
-impl Storable for UserBuyedAssetVec {
-    const BOUND: Bound = Bound::Unbounded;
-    fn to_bytes(&self) -> std::borrow::Cow<[u8]> {
-        Cow::Owned(Encode!(self).unwrap())
-    }
-    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Self {
-        Decode!(bytes.as_ref(), Self).unwrap()
-    }
-}
-
 const CREATOR_PREMINT: u64 = 100_000_000; // 1e8
 const CREATOR_FEE_PERCENT: u64 = 5_000_000; // 5_000_000 / 1e8 = 5%
 const TOKEN_FEE: u64 = 0; 
@@ -165,65 +152,65 @@ thread_local! {
     // asset_id -> token_id
     static ASSET_TO_TOKEN: RefCell<StableBTreeMap<u64, u64, Memory>> = RefCell::new(
         StableBTreeMap::init(
-            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(2)))   
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(3)))   
         )
     );
 
     // user -> Vec<asset_id>
     static USER_ASSET_MAP: RefCell<StableBTreeMap<Principal, UserAssetIds, Memory>> = RefCell::new(
         StableBTreeMap::init(
-            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(2)))
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(4)))
         )
     );
 
     // asset_id -> pool_value
     static POOL_VALUE: RefCell<StableBTreeMap<u64, u64, Memory>> = RefCell::new(
         StableBTreeMap::init(
-            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(2)))
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(5)))
         )
     );
 
     // asset_id -> asset_token_supply
     static SUPPLY_MAP: RefCell<StableBTreeMap<u64, u64, Memory>> = RefCell::new(
         StableBTreeMap::init(
-            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(3)))
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(6)))
         )
     );
 
     static CREATE_EVENT: RefCell<StableLog<CreateEvent, Memory, Memory>> = RefCell::new(
         StableLog::init(
-            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(4))), 
-            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(5)))
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(7))), 
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(8)))
         ).unwrap()
     );
 
     static REMOVE_EVENT: RefCell<StableLog<RemoveEvent, Memory, Memory>> = RefCell::new(
         StableLog::init(
-            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(6))), 
-            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(7)))
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(10))), 
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(11)))
         ).unwrap()
     );
 
     static TRADE_EVENT: RefCell<StableLog<TradeEvent, Memory, Memory>> = RefCell::new(
         StableLog::init(
-            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(8))), 
-            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(9)))
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(12))), 
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(13)))
         ).unwrap()
     );
 
     static TOKEN_CA: RefCell<StableCell<Principal, Memory>> = RefCell::new(
         StableCell::init(
-            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(8))), 
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(14))), 
             Principal::from_text("rvcxx-xiaaa-aaaan-qznha-cai").unwrap()
         ).unwrap()
     );
 
     // main_net : ryjl3-tyaaa-aaaaa-aaaba-cai
-    // test_net : 
+    // test_net : xqjmi-wiaaa-aaaan-qznra-cai
     static ICP_CA: RefCell<StableCell<Principal, Memory>> = RefCell::new(
         StableCell::init(
-            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(8))), 
-            Principal::from_text("ryjl3-tyaaa-aaaaa-aaaba-cai").unwrap()
+            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(15))), 
+            Principal::from_text("xqjmi-wiaaa-aaaan-qznra-cai").unwrap()
         ).unwrap()
     )
 }
@@ -309,18 +296,26 @@ fn get_recent_trade(asset_id: u64) -> Vec<TradeEvent> {
     })   
 }
 
-#[ic_cdk::query]
-fn get_holders(asset_id: u64) -> Vec<(Principal, u64)> {
-    // 调 token 
 
-    vec![]
+#[ic_cdk::query(composite = true)]
+async fn get_holders(asset_id: u64) -> Vec<(Principal, Nat)> {
+    match ASSET_TO_TOKEN.with(|map| {
+        map.borrow().get(&asset_id)
+    }) {
+        None => vec![],
+        Some(token_id) => ic_cdk::call::<(u64, ), (Vec<(Principal, Nat)>, )>(
+            TOKEN_CA.with(|ca| ca.borrow().get().clone()), 
+            "get_holders", 
+            (token_id, )
+        ).await.unwrap().0
+    }
 }
 
 #[ic_cdk::query]
 fn get_share_supply(asset_id: u64) -> Option<u64> {
-    // 调 token
-
-    None
+    SUPPLY_MAP.with(|map| {
+        map.borrow().get(&asset_id)
+    })
 }
 
 #[ic_cdk::query]
@@ -770,3 +765,5 @@ fn check_post_id(
     let post_index = u64::from_str_radix(words[2], 10).unwrap();
     (bucket, user, post_index)
 }
+
+ic_cdk::export_candid!();

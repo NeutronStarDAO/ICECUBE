@@ -45,6 +45,21 @@
       "package": "data_analysis",
       "type": "rust"
     },
+    "trade": {
+      "candid": "dawnlight/trade/trade.did",
+      "package": "trade",
+      "type": "rust"
+    },
+    "token": {
+      "candid": "dawnlight/token/token.did",
+      "package": "token",
+      "type": "rust"
+    },
+    "test_icp": {
+      "candid": "test_icp/test_icp.did",
+      "package": "test_icp",
+      "type": "rust"
+    },
     "internet_identity": {
       "candid": "https://github.com/dfinity/internet-identity/releases/latest/download/internet_identity.did",
       "frontend": {},

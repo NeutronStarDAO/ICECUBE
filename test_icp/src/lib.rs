@@ -1,10 +1,10 @@
 use candid::{CandidType, Deserialize, Nat, Principal, Encode, Decode};
 use std::{cell::RefCell, collections::HashMap};
-use std::borrow::Cow;
+use std::borrow::{BorrowMut, Cow};
 use ic_stable_structures::memory_manager::{MemoryId, MemoryManager, VirtualMemory};
-use ic_stable_structures::{DefaultMemoryImpl, StableBTreeMap, StableCell, StableLog};
+use ic_stable_structures::{DefaultMemoryImpl, StableCell};
 use ic_stable_structures::storable::{Bound, Storable};
-use types::{TokenInitArgs, Account, Subaccount, TokenError};
+use types::{TokenInitArgs, Account, Subaccount};
 
 type Memory = VirtualMemory<DefaultMemoryImpl>;
 
@@ -177,18 +177,6 @@ impl Token {
         self.balances.insert(from, old_balance - amount.clone());
         self.total_supply -= amount;
         true
-    }
-
-    fn get_holders(&self) -> Vec<(Principal, Nat)> {
-        let mut holder_vec = Vec::new();
-        for (account, balance) in self.balances.iter() {
-            if balance > &Nat::from(0u8) {
-                holder_vec.push((account.clone(), balance.clone()));
-            }
-        }
-        holder_vec.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
-        holder_vec.reverse();
-        holder_vec
     }
 
     fn icrc1_balance_of(&self,account: Account) -> candid::Nat {
@@ -417,212 +405,149 @@ thread_local! {
     static MEMORY_MANAGER: RefCell<MemoryManager<DefaultMemoryImpl>> =
         RefCell::new(MemoryManager::init(DefaultMemoryImpl::default()));
 
-    static TOKEN_INDEX: RefCell<StableCell<u64, Memory>> = RefCell::new(
+    static TOKEN: RefCell<StableCell<Token, Memory>> = RefCell::new(
         StableCell::init(
             MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(0))), 
-            0
-        ).unwrap()
-    );
-
-    static TOKENS: RefCell<StableBTreeMap<u64, Token, Memory>> = RefCell::new(
-        StableBTreeMap::init(
-            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(1)))
-        )
-    );
-
-    static TRADE_CA: RefCell<StableCell<Principal, Memory>> = RefCell::new(
-        StableCell::init(
-            MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(2))), 
-            Principal::from_text("r4b4l-baaaa-aaaan-qzngq-cai").unwrap()
+            Token::init(TokenInitArgs {
+                decimals: 8,
+                fee: Nat::from(10_000u64),
+                mintint_account: None,
+                name: String::from("ICP"),
+                symbol: String::from("ICP"),
+                init_balances: vec![(Principal::from_text("r4b4l-baaaa-aaaan-qzngq-cai").unwrap(), Nat::from(10000000000000u64))]  
+            })
         ).unwrap()
     );
 }
 
-#[ic_cdk::update]
-fn create(args: TokenInitArgs) -> Result<u64, TokenError> {
-    let caller = ic_cdk::caller();
-    let trade_ca = TRADE_CA.with(|ca| ca.borrow().get().clone());
-
-    if caller != trade_ca {
-        return Err(TokenError::Unauthorized);
-    }
-
-    let token_id = TOKEN_INDEX.with(|index| index.borrow().get().clone());
-    TOKEN_INDEX.with(|index| index.borrow_mut().set(token_id + 1).unwrap());
-
-    let token = Token::init(args);
-
-    TOKENS.with(|map| {
-        map.borrow_mut().insert(token_id, token)
-    });
-
-    Ok(token_id)
-}
-
 #[ic_cdk::query]
-fn get_holders(token_id: u64) -> Vec<(Principal, Nat)> {
-    match TOKENS.with(|map| {
-        map.borrow().get(&token_id)
-    }) {
-        None => vec![],
-        Some(token) => token.get_holders()
-    }
-}
-
-#[ic_cdk::query]
-fn icrc1_balance_of(token_id: u64, account: Account) -> Result<Nat, TokenError> {
-    TOKENS.with(|map| {
-        match map.borrow().get(&token_id) {
-            None => Err(TokenError::TokenNotExist),
-            Some(token) => Ok(token.icrc1_balance_of(account))
-        }
+fn icrc1_balance_of(account: Account) -> Nat {
+    TOKEN.with(|token| {
+        token.borrow().get().icrc1_balance_of(account)
     })
 }
 
 #[ic_cdk::query]
-fn icrc1_decimals(token_id: u64) -> Result<u8, TokenError> {
-    TOKENS.with(|map| {
-        match map.borrow().get(&token_id) {
-            None => Err(TokenError::TokenNotExist),
-            Some(token) => Ok(token.icrc1_decimals())
-        }
+fn icrc1_decimals() -> u8 {
+    TOKEN.with(|token| {
+        token.borrow().get().icrc1_decimals()
     })
 }
 
 #[ic_cdk::query]
-fn icrc1_fee(token_id: u64) -> Result<Nat, TokenError> {
-    TOKENS.with(|map| {
-        match map.borrow().get(&token_id) {
-            None => Err(TokenError::TokenNotExist),
-            Some(token) => Ok(token.icrc1_fee())
-        }
+fn icrc1_fee(token_id: u64) -> Nat {
+    TOKEN.with(|token| {
+        token.borrow().get().icrc1_fee()
     })
 }
 
 #[ic_cdk::query]
-fn icrc1_metadata(token_id: u64) -> Result<Vec<(String, Value)>, TokenError> {
-    TOKENS.with(|map| {
-        match map.borrow().get(&token_id) {
-            None => Err(TokenError::TokenNotExist),
-            Some(token) => Ok(token.icrc1_metadata())
-        }
+fn icrc1_metadata() -> Vec<(String, Value)> {
+    TOKEN.with(|token| {
+        token.borrow().get().icrc1_metadata()
     })
 }
 
 #[ic_cdk::query]
-fn icrc1_minting_account(token_id: u64) -> Result<Option<Account>, TokenError> {
-    TOKENS.with(|map| {
-        match map.borrow().get(&token_id) {
-            None => Err(TokenError::TokenNotExist),
-            Some(token) => Ok(token.icrc1_minting_account())
-        }
+fn icrc1_minting_account() -> Option<Account> {
+    TOKEN.with(|token| {
+        token.borrow().get().icrc1_minting_account()
     })
 }
 
 #[ic_cdk::query]
-fn icrc1_name(token_id: u64) -> Result<String, TokenError> {
-    TOKENS.with(|map| {
-        match map.borrow().get(&token_id) {
-            None => Err(TokenError::TokenNotExist),
-            Some(token) => Ok(token.icrc1_name())
-        }
+fn icrc1_name() -> String {
+    TOKEN.with(|token| {
+        token.borrow().get().icrc1_name()
     })
 }
 
 #[ic_cdk::query]
-fn icrc1_supported_standards(token_id: u64) -> Result<Vec<Icrc1supportedStandardsResult>, TokenError> {
-    TOKENS.with(|map| {
-        match map.borrow().get(&token_id) {
-            None => Err(TokenError::TokenNotExist),
-            Some(token) => Ok(token.icrc1_supported_standards())
-        }
+fn icrc1_supported_standards() -> Vec<Icrc1supportedStandardsResult> {
+    TOKEN.with(|token| {
+        token.borrow().get().icrc1_supported_standards()
     })
 }
 
 #[ic_cdk::query] 
-fn icrc1_symbol(token_id: u64) -> Result<String, TokenError> {
-    TOKENS.with(|map| {
-        match map.borrow().get(&token_id) {
-            None => Err(TokenError::TokenNotExist),
-            Some(token) => Ok(token.icrc1_symbol())
-        }
+fn icrc1_symbol() -> String {
+    TOKEN.with(|token| {
+        token.borrow().get().icrc1_symbol()
     })
 }
 
 #[ic_cdk::query]
-fn icrc1_total_supply(token_id: u64) -> Result<Nat, TokenError> {
-    TOKENS.with(|map| {
-        match map.borrow().get(&token_id) {
-            None => Err(TokenError::TokenNotExist),
-            Some(token) => Ok(token.icrc1_total_supply())
-        }
+fn icrc1_total_supply() -> Nat {
+    TOKEN.with(|token| {
+        token.borrow().get().icrc1_total_supply()
     })
 }
 
 #[ic_cdk::update]
-fn icrc1_transfer(token_id: u64, args: TransferArgs) -> Result<Icrc1transferResult, TokenError> {
-    TOKENS.with(|map| {
-        match map.borrow_mut().get(&token_id) {
-            None => Err(TokenError::TokenNotExist),
-            Some(mut token) => Ok(token.icrc1_transfer(ic_cdk::caller(), args))
-        }
-    })
+fn icrc1_transfer(args: TransferArgs) -> Icrc1transferResult {
+    let mut token: Token = TOKEN.with(|value| {
+        value.borrow().get().clone()
+    });
+
+    let result = token.icrc1_transfer(ic_cdk::caller(), args);
+
+    TOKEN.with(|value| {
+        value.borrow_mut().set(token).unwrap()
+    });
+
+    result
 }
 
 #[ic_cdk::query]
-fn icrc2_allowance(token_id: u64, args: AllowanceArgs) -> Result<Icrc2allowanceResult, TokenError> {
-    TOKENS.with(|map| {
-        match map.borrow().get(&token_id) {
-            None => Err(TokenError::TokenNotExist),
-            Some(token) => Ok(token.icrc2_allowance(args))
-        }
+fn icrc2_allowance(args: AllowanceArgs) -> Icrc2allowanceResult {
+    TOKEN.with(|token| {
+        token.borrow().get().icrc2_allowance(args)
     })
 }
 
 #[ic_cdk::update]
-fn icrc2_approve(token_id: u64, args: ApproveArgs) -> Result<Icrc2approveResult, TokenError> {
-    TOKENS.with(|map| {
-        match map.borrow_mut().get(&token_id) {
-            None => Err(TokenError::TokenNotExist),
-            Some(mut token) => Ok(token.icrc2_approve(ic_cdk::caller(), args))
-        }
-    })
+fn icrc2_approve(args: ApproveArgs) -> Icrc2approveResult{
+    let mut token = TOKEN.with(|value| {
+        value.borrow().get().clone()
+    });
+
+    let approve_result = token.icrc2_approve(ic_cdk::caller(), args);
+
+    TOKEN.with(|value| {
+        value.borrow_mut().set(token).unwrap()
+    });
+
+    approve_result
 }
 
 #[ic_cdk::update]
-fn icrc2_transfer_from(token_id: u64, args: TransferFromArgs) -> Result<Icrc2transferFromResult, TokenError> {
-    TOKENS.with(|map| {
-        match map.borrow_mut().get(&token_id) {
-            None => Err(TokenError::TokenNotExist),
-            Some(mut token) => Ok(token.icrc2_transfer_from(ic_cdk::caller(), args))
-        }
-    })
+fn icrc2_transfer_from(args: TransferFromArgs) -> Icrc2transferFromResult {
+    let mut token = TOKEN.with(|value| {
+        value.borrow().get().clone()
+    });
+
+    let transfer_from_result = token.icrc2_transfer_from(ic_cdk::caller(), args);
+
+    TOKEN.with(|value| {
+        value.borrow_mut().set(token).unwrap()
+    });
+
+    transfer_from_result
 }
 
 #[ic_cdk::update]
-fn mint(token_id: u64, to: Principal, amount: u64) -> bool {
-    assert!(ic_cdk::caller() == TRADE_CA.with(|ca| ca.borrow().get().clone()));
-    match TOKENS.with(|map| {
-        map.borrow().get(&token_id)
-    }) {
-        None => false,
-        Some(mut token) => {
-            token.mint(vec![(to, Nat::from(amount))])
-        }
-    }
-}
+fn mint(to: Principal, amount: u64) -> bool {
+    let mut token = TOKEN.with(|value| {
+        value.borrow().get().clone()
+    });
 
-#[ic_cdk::update]
-fn burn(token_id: u64, from: Principal, amount: u64) -> bool {
-    assert!(ic_cdk::caller() == TRADE_CA.with(|ca| ca.borrow().get().clone()));
-    match TOKENS.with(|map| {
-        map.borrow().get(&token_id)
-    }) {
-        None => false,
-        Some(mut token) => {
-            token.burn(from, Nat::from(amount))
-        }
-    }
+    let mint_result = token.mint(vec![(to, Nat::from(amount))]);
+
+    TOKEN.with(|value| {
+        value.borrow_mut().set(token).unwrap()
+    });
+
+    mint_result
 }
 
 ic_cdk::export_candid!();
