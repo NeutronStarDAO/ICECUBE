@@ -41,6 +41,7 @@ type TradeType = variant { Buy; Mint; Sell };
 service : {
   buy : (nat64, nat64) -> (Result);
   create : (text) -> (Result_1);
+  get_asset : (nat64) -> (opt Asset) query;
   get_asset_entries : () -> (vec Asset) query;
   get_asset_entries_by_len : (nat64, nat64) -> (vec Asset) query;
   get_asset_index : () -> (nat64) query;

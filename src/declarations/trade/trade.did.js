@@ -55,6 +55,7 @@ export const idlFactory = ({ IDL }) => {
   return IDL.Service({
     'buy' : IDL.Func([IDL.Nat64, IDL.Nat64], [Result], []),
     'create' : IDL.Func([IDL.Text], [Result_1], []),
+    'get_asset' : IDL.Func([IDL.Nat64], [IDL.Opt(Asset)], ['query']),
     'get_asset_entries' : IDL.Func([], [IDL.Vec(Asset)], ['query']),
     'get_asset_entries_by_len' : IDL.Func(
         [IDL.Nat64, IDL.Nat64],

@@ -49,6 +49,7 @@ export type TradeType = { 'Buy' : null } |
 export interface _SERVICE {
   'buy' : ActorMethod<[bigint, bigint], Result>,
   'create' : ActorMethod<[string], Result_1>,
+  'get_asset' : ActorMethod<[bigint], [] | [Asset]>,
   'get_asset_entries' : ActorMethod<[], Array<Asset>>,
   'get_asset_entries_by_len' : ActorMethod<[bigint, bigint], Array<Asset>>,
   'get_asset_index' : ActorMethod<[], bigint>,

@@ -235,6 +235,13 @@ fn is_posts_be_assets(post_id_vec: Vec<String>) -> Vec<Option<u64>> {
 }
 
 #[ic_cdk::query]
+fn get_asset(asset_id: u64) -> Option<Asset> {
+    ASSET_MAP.with(|map| {
+        map.borrow().get(&asset_id)
+    })
+}
+
+#[ic_cdk::query]
 fn get_asset_entries() -> Vec<Asset> {
     ASSET_MAP.with(|map| {
         let mut entries = Vec::new();
