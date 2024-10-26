@@ -216,6 +216,25 @@ thread_local! {
 }
 
 #[ic_cdk::query]
+fn is_post_be_asset(post_id: String) -> Option<u64> {
+    POST_TO_ASSET.with(|map| {
+        map.borrow().get(&post_id)
+    })
+}
+
+#[ic_cdk::query]
+fn is_posts_be_assets(post_id_vec: Vec<String>) -> Vec<Option<u64>> {
+    let mut entries = Vec::new();
+    POST_TO_ASSET.with(|map| {
+        for post_id in post_id_vec {
+            entries.push(map.borrow().get(&post_id))
+        }
+    });
+
+    entries
+}
+
+#[ic_cdk::query]
 fn get_asset_entries() -> Vec<Asset> {
     ASSET_MAP.with(|map| {
         let mut entries = Vec::new();
@@ -397,7 +416,6 @@ fn get_creator_premint() -> u64 { CREATOR_PREMINT }
 
 #[ic_cdk::query]
 fn get_creator_fee_precent() -> u64 { CREATOR_FEE_PERCENT }
-
 
 // return (asset_id, token_id)
 #[ic_cdk::update]

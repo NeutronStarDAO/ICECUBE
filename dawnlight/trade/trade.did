@@ -59,6 +59,8 @@ service : {
   get_sell_price_after_fee : (nat64, nat64) -> (nat64) query;
   get_share_supply : (nat64) -> (opt nat64) query;
   get_trade_events : () -> (vec TradeEvent) query;
+  is_post_be_asset : (text) -> (opt nat64) query;
+  is_posts_be_assets : (vec text) -> (vec opt nat64) query;
   remove : (nat64) -> (Result);
   sell : (nat64, nat64) -> (Result);
 }

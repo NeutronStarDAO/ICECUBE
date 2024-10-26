@@ -101,6 +101,12 @@ export const idlFactory = ({ IDL }) => {
       ),
     'get_share_supply' : IDL.Func([IDL.Nat64], [IDL.Opt(IDL.Nat64)], ['query']),
     'get_trade_events' : IDL.Func([], [IDL.Vec(TradeEvent)], ['query']),
+    'is_post_be_asset' : IDL.Func([IDL.Text], [IDL.Opt(IDL.Nat64)], ['query']),
+    'is_posts_be_assets' : IDL.Func(
+        [IDL.Vec(IDL.Text)],
+        [IDL.Vec(IDL.Opt(IDL.Nat64))],
+        ['query'],
+      ),
     'remove' : IDL.Func([IDL.Nat64], [Result], []),
     'sell' : IDL.Func([IDL.Nat64, IDL.Nat64], [Result], []),
   });

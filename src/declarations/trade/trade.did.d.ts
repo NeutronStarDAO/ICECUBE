@@ -67,6 +67,8 @@ export interface _SERVICE {
   'get_sell_price_after_fee' : ActorMethod<[bigint, bigint], bigint>,
   'get_share_supply' : ActorMethod<[bigint], [] | [bigint]>,
   'get_trade_events' : ActorMethod<[], Array<TradeEvent>>,
+  'is_post_be_asset' : ActorMethod<[string], [] | [bigint]>,
+  'is_posts_be_assets' : ActorMethod<[Array<string>], Array<[] | [bigint]>>,
   'remove' : ActorMethod<[bigint], Result>,
   'sell' : ActorMethod<[bigint, bigint], Result>,
 }
