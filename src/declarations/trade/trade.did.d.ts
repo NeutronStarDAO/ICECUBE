@@ -2,6 +2,13 @@ import type { Principal } from '@dfinity/principal';
 import type { ActorMethod } from '@dfinity/agent';
 import type { IDL } from '@dfinity/candid';
 
+export interface Asset {
+  'id' : bigint,
+  'creator' : Principal,
+  'post_id' : string,
+  'token_id' : bigint,
+  'time' : bigint,
+}
 export interface CreateEvent {
   'creator' : Principal,
   'post_id' : string,
@@ -42,6 +49,8 @@ export type TradeType = { 'Buy' : null } |
 export interface _SERVICE {
   'buy' : ActorMethod<[bigint, bigint], Result>,
   'create' : ActorMethod<[string], Result_1>,
+  'get_asset_entries' : ActorMethod<[], Array<Asset>>,
+  'get_asset_entries_by_len' : ActorMethod<[bigint, bigint], Array<Asset>>,
   'get_asset_index' : ActorMethod<[], bigint>,
   'get_asset_to_token' : ActorMethod<[bigint], [] | [bigint]>,
   'get_buy_price' : ActorMethod<[bigint, bigint], bigint>,
@@ -50,6 +59,7 @@ export interface _SERVICE {
   'get_creator_fee_precent' : ActorMethod<[], bigint>,
   'get_creator_premint' : ActorMethod<[], bigint>,
   'get_holders' : ActorMethod<[bigint], Array<[Principal, bigint]>>,
+  'get_holdings' : ActorMethod<[Principal], Array<[bigint, bigint]>>,
   'get_pool_value' : ActorMethod<[bigint], [] | [bigint]>,
   'get_recent_trade' : ActorMethod<[bigint], Array<TradeEvent>>,
   'get_remove_events' : ActorMethod<[], Array<RemoveEvent>>,

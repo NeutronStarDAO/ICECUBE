@@ -1,11 +1,11 @@
 use std::cell::RefCell;
-use std::borrow::{Borrow, Cow};
+use std::borrow::Cow;
 use candid::{CandidType, Decode, Encode, Nat, Principal};
 use serde::Deserialize;
 use ic_stable_structures::memory_manager::{MemoryId, MemoryManager, VirtualMemory};
 use ic_stable_structures::{DefaultMemoryImpl, StableBTreeMap, StableCell, StableLog};
 use ic_stable_structures::storable::{Bound, Storable};
-use types::{Post, TokenInitArgs, TokenError};
+use types::{Account, Post, TokenError, TokenInitArgs};
 mod icrc;
 
 type Memory = VirtualMemory<DefaultMemoryImpl>;
@@ -216,6 +216,78 @@ thread_local! {
 }
 
 #[ic_cdk::query]
+fn get_asset_entries() -> Vec<Asset> {
+    ASSET_MAP.with(|map| {
+        let mut entries = Vec::new();
+        
+        for (_ , v) in map.borrow().iter() {
+            entries.push(v);
+        }
+
+        entries
+    })
+}
+
+// start_from 0
+#[ic_cdk::query]
+fn get_asset_entries_by_len(start: u64, len: u64) -> Vec<Asset> {
+    ASSET_MAP.with(|map| {
+        let mut entries = Vec::new();
+        
+        let mut i = 0;
+        for (_ , v) in map.borrow().iter() {
+            if i >= start && i < start + len {
+                entries.push(v);
+            }
+            i += 1;
+        }
+
+        entries
+    })
+}
+
+#[ic_cdk::query(composite = true)]
+async fn get_holdings(user: Principal) -> Vec<(u64, Nat)> {
+    let asset_id_vec = USER_ASSET_MAP.with(|map| {
+        map.borrow().get(&user)
+    });
+
+    match asset_id_vec {
+        None => vec![],
+        Some(asset_ids) => {
+            let asset_id_vec = asset_ids.0;
+            let mut entries = Vec::new();
+
+            for asset_id in asset_id_vec {
+                let token_id = ASSET_TO_TOKEN.with(|map| {
+                    map.borrow().get(&asset_id)
+                });
+                match token_id {
+                    None => entries.push((asset_id, Nat::from(0u8))),
+                    Some(token_id) => {
+                        let balance_result = ic_cdk::call::<(u64, Account, ), (Result<Nat, TokenError>, )>(
+                            TOKEN_CA.with(|ca| ca.borrow().get().clone()), 
+                            "icrc1_balance_of", 
+                            (token_id, Account {
+                                owner: user,
+                                subaccount: None
+                            }, )
+                        ).await.unwrap().0;
+
+                        match balance_result {
+                            Err(_) => entries.push((asset_id, Nat::from(0u8))),
+                            Ok(balance) => entries.push((asset_id, balance)),
+                        }
+                    }
+                }
+            }
+
+            entries
+        }
+    }
+}
+
+#[ic_cdk::query]
 fn get_asset_index() -> u64 {
     ASSET_INDEX.with(|asset_index| {
         asset_index.borrow().get().clone()
@@ -284,16 +356,18 @@ fn get_pool_value(asset_id: u64) -> Option<u64> {
 #[ic_cdk::query]
 fn get_recent_trade(asset_id: u64) -> Vec<TradeEvent> {
     let mut events = Vec::new();
-
+    
     TRADE_EVENT.with(|logs| {
         for event in logs.borrow().iter() {
             if event.asset_id == asset_id {
                 events.push(event);
             }
         }
+    });
 
-        events
-    })   
+    events.reverse();
+
+    events
 }
 
 
@@ -329,7 +403,7 @@ fn get_creator_fee_precent() -> u64 { CREATOR_FEE_PERCENT }
 #[ic_cdk::update]
 async fn create(post_id: String) -> Result<(u64, u64), Error> {
     // 去 Bucket 检查 
-    let (bucket, post_creator, post_index) = check_post_id(&post_id);
+    let (bucket, _, _) = check_post_id(&post_id);
     let get_post_result = ic_cdk::call::<(String, ), (Option<Post>, )>(
         bucket, 
         "get_post", 
@@ -375,7 +449,7 @@ async fn create(post_id: String) -> Result<(u64, u64), Error> {
             ).await.unwrap().0;
 
             match create_token_result {
-                Err(token_err) => Err(Error::CreateTokenError),
+                Err(_) => Err(Error::CreateTokenError),
                 Ok(token_id) => {
 
                     let asset = Asset {
@@ -734,7 +808,7 @@ fn get_sell_price(asset_id: u64, amount: u64) -> u64 {
 fn get_buy_price_after_fee(asset_id: u64, amount: u64) -> u64 {
     let price = get_buy_price(asset_id, amount);
     let creator_fee = (price * CREATOR_FEE_PERCENT) / CREATOR_PREMINT;
-    price - creator_fee
+    price + creator_fee
 }
 
 #[ic_cdk::query]

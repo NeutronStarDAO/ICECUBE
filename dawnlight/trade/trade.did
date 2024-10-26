@@ -1,3 +1,10 @@
+type Asset = record {
+  id : nat64;
+  creator : principal;
+  post_id : text;
+  token_id : nat64;
+  time : nat64;
+};
 type CreateEvent = record {
   creator : principal;
   post_id : text;
@@ -34,6 +41,8 @@ type TradeType = variant { Buy; Mint; Sell };
 service : {
   buy : (nat64, nat64) -> (Result);
   create : (text) -> (Result_1);
+  get_asset_entries : () -> (vec Asset) query;
+  get_asset_entries_by_len : (nat64, nat64) -> (vec Asset) query;
   get_asset_index : () -> (nat64) query;
   get_asset_to_token : (nat64) -> (opt nat64) query;
   get_buy_price : (nat64, nat64) -> (nat64) query;
@@ -42,6 +51,7 @@ service : {
   get_creator_fee_precent : () -> (nat64) query;
   get_creator_premint : () -> (nat64) query;
   get_holders : (nat64) -> (vec record { principal; nat }) composite_query;
+  get_holdings : (principal) -> (vec record { nat64; nat }) composite_query;
   get_pool_value : (nat64) -> (opt nat64) query;
   get_recent_trade : (nat64) -> (vec TradeEvent) query;
   get_remove_events : () -> (vec RemoveEvent) query;

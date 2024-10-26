@@ -23,6 +23,13 @@ export const idlFactory = ({ IDL }) => {
     'Ok' : IDL.Tuple(IDL.Nat64, IDL.Nat64),
     'Err' : Error,
   });
+  const Asset = IDL.Record({
+    'id' : IDL.Nat64,
+    'creator' : IDL.Principal,
+    'post_id' : IDL.Text,
+    'token_id' : IDL.Nat64,
+    'time' : IDL.Nat64,
+  });
   const CreateEvent = IDL.Record({
     'creator' : IDL.Principal,
     'post_id' : IDL.Text,
@@ -48,6 +55,12 @@ export const idlFactory = ({ IDL }) => {
   return IDL.Service({
     'buy' : IDL.Func([IDL.Nat64, IDL.Nat64], [Result], []),
     'create' : IDL.Func([IDL.Text], [Result_1], []),
+    'get_asset_entries' : IDL.Func([], [IDL.Vec(Asset)], ['query']),
+    'get_asset_entries_by_len' : IDL.Func(
+        [IDL.Nat64, IDL.Nat64],
+        [IDL.Vec(Asset)],
+        ['query'],
+      ),
     'get_asset_index' : IDL.Func([], [IDL.Nat64], ['query']),
     'get_asset_to_token' : IDL.Func(
         [IDL.Nat64],
@@ -66,6 +79,11 @@ export const idlFactory = ({ IDL }) => {
     'get_holders' : IDL.Func(
         [IDL.Nat64],
         [IDL.Vec(IDL.Tuple(IDL.Principal, IDL.Nat))],
+        ['composite_query'],
+      ),
+    'get_holdings' : IDL.Func(
+        [IDL.Principal],
+        [IDL.Vec(IDL.Tuple(IDL.Nat64, IDL.Nat))],
         ['composite_query'],
       ),
     'get_pool_value' : IDL.Func([IDL.Nat64], [IDL.Opt(IDL.Nat64)], ['query']),
