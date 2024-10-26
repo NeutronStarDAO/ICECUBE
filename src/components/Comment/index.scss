@@ -94,8 +94,8 @@
     font-family: "Fredoka", sans-serif;
 
     .avatar {
-      width: 5.3rem;
-      height: 5.3rem;
+      width: 5.1rem;
+      height: 5.1rem;
       border-radius: 50%;
     }
   }
@@ -150,8 +150,12 @@
   }
 
   .dark_post_bottom {
-    span svg path {
-      fill: #b9c9de !important;
+    span {
+      color: #b9c9de !important;
+
+      svg path {
+        fill: #b9c9de !important;
+      }
     }
   }
 

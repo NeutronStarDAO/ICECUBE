@@ -341,7 +341,7 @@ const CommentCon2 = React.memo(({comment1, commentToComment, commentCount, profi
 
   return <div className={"comment_main"}
               style={{
-                width: commentToComment ? "90%" : "",
+                width: commentToComment ? "93%" : "",
                 border: commentToComment ? "none" : "",
                 float: commentToComment ? "right" : "none"
               }}>
