@@ -227,7 +227,7 @@ const YouTubeEmbed = ({videoId, postId, setPlayOne, playOne}: {
         <img
           src={`https://img.youtube.com/vi/${videoId}/0.jpg`}
           alt="YouTube video thumbnail"
-          style={{width: '100%', height: 'auto'}}
+          style={{width: '60%', height: 'auto'}}
         />
       </div>
     );
