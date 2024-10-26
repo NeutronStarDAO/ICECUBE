@@ -19,6 +19,8 @@ import {CommentTreeNode} from "./declarations/feed/feed";
 import {Principal} from "@dfinity/principal";
 import {SinglePost} from "./view/Main/SinglePost";
 import {TopicPost} from "./view/TopicPost";
+import {Trade} from "./view/Trade";
+import {SingleAsset} from "./view/Trade/SingleAsset";
 
 const userFeedCai = Principal.from("mai5z-6yaaa-aaaan-qmtmq-cai")
 
@@ -96,15 +98,17 @@ function App() {
       <Side scrollToTop={scrollToTop}/>
       <Routes>
         <Route path="/" element={<Navigate to={"home"}/>}/>
-        <Route path="/home" element={<Main scrollContainerRef={scrollContainerRef}/>}/>
+        <Route path="/home" element={<Main ref={scrollContainerRef}/>}/>
         <Route path="/post/:postId" element={<SinglePost/>}/>
-        <Route path="/explore" element={<Main scrollContainerRef={scrollContainerRef}/>}/>
+        <Route path="/asset/:assetId" element={<SingleAsset/>}/>
+        <Route path="/explore" element={<Main ref={scrollContainerRef}/>}/>
+        <Route path="/trade" element={<Trade/>}/>
         <Route path="/wallet" element={<Wallet/>}/>
         <Route path="/settings" element={<Settings/>}/>
         <Route path="/followers/:id" element={<FollowList/>}/>
         <Route path="/following/:id" element={<FollowList/>}/>
         <Route path="/profile/:id"
-               element={<Profile scrollContainerRef={scrollContainerRef} scrollToTop={scrollToTop}/>}/>
+               element={<Profile ref={scrollContainerRef} scrollToTop={scrollToTop}/>}/>
         <Route path="/tag" element={<TopicPost/>}/>
         <Route path="*" element={<Navigate to={"home"}/>}/>
       </Routes>

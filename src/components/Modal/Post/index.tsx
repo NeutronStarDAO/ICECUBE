@@ -15,6 +15,7 @@ import {getBase64} from "../../../utils/util";
 import gsap from "gsap";
 import {useGSAP} from "@gsap/react";
 import {dataAnalysisApi} from "../../../actors/dataAnalysis";
+import {tradeApi} from "../../../actors/trade";
 
 // export const PostModal = ({open, setOpen}: { open: boolean, setOpen: Function }) => {
 //   const [isVisible, setIsVisible] = useState(false)
@@ -312,6 +313,7 @@ export const PostModal = ({open, setOpen}: { open: boolean, setOpen: Function })
   const ref = useRef(null)
   const [canSend, setCanSend] = useState(false)
   const [hoverOne, setHoverOne] = useState(-1)
+  const [isTrade, setIsTrade] = useState(false)
 
   const {contextSafe} = useGSAP({scope: ref})
 
@@ -446,6 +448,9 @@ export const PostModal = ({open, setOpen}: { open: boolean, setOpen: Function })
       if (hashtags.length > 0) {
         await dataAnalysisApi.receive_post(hashtags, postId)
       }
+      if (isTrade) {
+        tradeApi.create(postId).then(e=>console.log(e))
+      }
       updateData()
     } catch (e) {
       message.error('Create Post failed !')
@@ -456,6 +461,7 @@ export const PostModal = ({open, setOpen}: { open: boolean, setOpen: Function })
     setText("")
     setFiles([])
     setIsVisible(false)
+    setIsTrade(false)
   }, [open])
 
   const getBase64Img = async () => {
@@ -563,6 +569,9 @@ export const PostModal = ({open, setOpen}: { open: boolean, setOpen: Function })
                     }} previewPosition="none" date={data}
                     onEmojiSelect={(e: any) => setText(text + e.native)}/>
           </div>
+          <span onClick={() => setIsTrade(!isTrade)}>
+            <Icon name={isTrade ? "Trade_Click" : "Trade"}/>
+          </span>
         </div>
         <div className={"button_wrap"}>
           {canSend ?

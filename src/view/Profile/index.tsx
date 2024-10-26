@@ -1,6 +1,6 @@
 import "./index.scss"
 
-import React, {useEffect, useRef, useState} from "react"
+import React, {forwardRef, useEffect, useRef, useState} from "react"
 import Icon from "../../Icons/Icon";
 import {ProfileModal} from "../../components/Modal/Profile";
 import {Profile as profile_type} from "../../declarations/user/user";
@@ -25,10 +25,7 @@ import {PostUserInfo} from "../../components/Common";
 
 gsap.registerPlugin(ScrollTrigger);
 
-export const Profile = ({
-                          scrollContainerRef,
-                          scrollToTop
-                        }: { scrollToTop: Function, scrollContainerRef: React.MutableRefObject<null> }) => {
+export const Profile = forwardRef(({scrollToTop}: { scrollToTop: Function }, ref: any) => {
   const {id}: { id?: string } = useParams()
   const [profile, setProfile] = useState<profile_type>()
   const [posts, setPosts] = useState<post_type[]>()
@@ -61,7 +58,7 @@ export const Profile = ({
 
   useEffect(() => {
     const titleRefCurrent = titleRef.current;
-    const scrollContainer = scrollContainerRef.current;
+    const scrollContainer = ref.current;
 
     if (titleRefCurrent && scrollContainer) {
       gsap.to(titleRefCurrent, {
@@ -75,9 +72,9 @@ export const Profile = ({
       });
     }
 
-  }, [titleRef, scrollContainerRef]);
+  }, [titleRef, ref]);
 
-  return <div className={`profile_main ${isDark ? "dark_profile_main" : ""}`} ref={scrollContainerRef}>
+  return <div className={`profile_main ${isDark ? "dark_profile_main" : ""}`} ref={ref}>
     <div ref={titleRef} className={"profile_title"} style={{cursor: "pointer"}} onClick={() => scrollToTop()}>Profile
     </div>
     <div style={{width: "100%", flex: "1"}}>
@@ -106,7 +103,7 @@ export const Profile = ({
     </div>
 
   </div>
-}
+})
 
 
 const UserPanel = ({profile}: { profile?: profile_type }) => {
@@ -230,24 +227,21 @@ const UserPanel = ({profile}: { profile?: profile_type }) => {
                     handleStyle={{fontSize: "2.3rem"}}/>
       <ProfileModal setOpen={setOpen} open={open} canClose={true}/>
       <div style={{display: 'flex', alignItems: 'center'}}>
-        {!isBlack ?
-          <div className={"dropdown_select_modal"} style={{position: "relative", display: isOwner ? "none" : "flex"}}>
-            <div className={"more_wrap"} onClick={e => {
-              e.stopPropagation()
-              setShowMore(!showMore)
-            }}>
-              <div>
-                <Icon name={"more"}/>
-              </div>
+        <div className={"dropdown_select_modal"} style={{position: "relative", display: isOwner ? "none" : "flex"}}>
+          <div className={"more_wrap"} onClick={e => {
+            e.stopPropagation()
+            setShowMore(!showMore)
+          }}>
+            <div>
+              <Icon name={"more"}/>
             </div>
-            <div className={"dropdown_wrap"} style={{display: showMore ? "flex" : "none", zIndex: '100'}}>
-              <div onClick={block}>
-                <Icon name={"block"}/> Block
-              </div>
+          </div>
+          <div className={"dropdown_wrap"} style={{display: showMore ? "flex" : "none", zIndex: '100'}}>
+            <div onClick={isBlack ? cancleBlock : block}>
+              <Icon name={"block"}/> {isBlack ? "Unblock" : " Block"}
             </div>
-          </div> : <span className={"edit"} onClick={cancleBlock}>
-        Remove
-      </span>}
+          </div>
+        </div>
 
 
         {isOwner ? <span className={"edit"} onClick={() => setOpen(true)}>

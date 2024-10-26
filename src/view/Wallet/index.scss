@@ -149,6 +149,66 @@
   .dark_tx_main {
     background: #2d3550;
   }
+
+  .wallet_holding {
+    text-align: start;
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+
+    .cube-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .cube-card {
+      width: 23rem;
+      height: 23rem;
+      border-radius: 12px;
+      background-color: #F0F4FF;
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+
+      .cube-content {
+        height: 75%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+
+        img {
+          height: 100%;
+          border-radius: 12px;
+
+        }
+
+        .overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(0, 0, 0, 0.4);
+          color: white;
+          display: flex;
+          justify-content: center;
+          font-size: 2rem;
+          align-items: center;
+          border-radius: 12px 12px 0 0;
+        }
+      }
+
+      .cube-label {
+        margin-top: 8px;
+        font-size: 3rem;
+        font-weight: 400;
+      }
+    }
+
+
+  }
 }
 
 @media screen and (max-width: 500px) {

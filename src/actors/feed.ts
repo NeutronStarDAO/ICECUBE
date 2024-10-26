@@ -176,5 +176,17 @@ export default class Feed {
     })
   }
 
+  batch_get_post(postIDs: string[]) {
+    return new Promise<Post[]>(async (resolve, reject) => {
+      const actor = await this.getActor()
+      try {
+        const res = await actor.batch_get_post(postIDs) as Post[]
+        resolve(res)
+      } catch (e) {
+        console.log("batch_get_post error", e)
+        reject(e)
+      }
+    })
+  }
 
 }

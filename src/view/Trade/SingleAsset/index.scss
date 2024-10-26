@@ -1,0 +1,87 @@
+.asset_info {
+  width: 100%;
+  padding: 2rem 5rem;
+
+  &_head {
+    display: flex;
+    border-bottom: 1px solid black;
+    padding-bottom: 0.5rem;
+    justify-content: space-between;
+
+    span {
+      font-size: 2.7rem;
+      padding: 1rem 2rem;
+      cursor: pointer;
+
+      &:hover {
+        background-color: #BDD5FF;
+        border-radius: 3rem;
+
+      }
+    }
+
+    .active {
+      border-radius: 3rem;
+      background-color: #BDD5FF;
+    }
+  }
+
+  &_body {
+    display: flex;
+    gap: 3rem;
+    margin-top: 2rem;
+    align-items: start;
+
+    &_left, &_right {
+      background-color: #F0F4FF;
+      border-radius: 1.5rem;
+      padding: 1rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    &_left {
+      flex: 1.4;
+
+
+      .item {
+        display: flex;
+        justify-content: space-between;
+        padding: 1rem 0;
+        font-size: 2.5rem;
+
+        & > :nth-child(2) {
+          text-transform: uppercase;
+          border-radius: 1rem;
+          padding: 0.5rem 1rem;
+        }
+
+        & > .buy {
+          background-color: #B4F7B3;
+        }
+
+        & > .sell {
+          background-color: #FFC8C8;
+        }
+      }
+    }
+
+    &_right {
+      flex: 1;
+
+      .item {
+        display: flex;
+        justify-content: space-between;
+
+        & > :nth-child(1) {
+          font-size: 2.7rem;
+        }
+
+        & > :nth-child(2) {
+          font-size: 3rem;
+        }
+      }
+    }
+  }
+}

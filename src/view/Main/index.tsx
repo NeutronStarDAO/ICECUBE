@@ -1,6 +1,6 @@
 import "./index.scss"
 
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useEffect, useMemo, useRef, useState} from 'react';
 import Icon from "../../Icons/Icon";
 import {useLocation, useNavigate} from "react-router-dom";
 import {Post as postType} from "../../declarations/feed/feed";
@@ -10,18 +10,18 @@ import Feed from "../../actors/feed";
 import {rootPostApi} from "../../actors/root_bucket";
 import {userApi} from "../../actors/user";
 import {Profile} from "../../declarations/user/user";
-import {shortenString} from "../../components/Sider";
-import {CloseOutlined} from "@ant-design/icons";
 import {updateSelectPost, useSelectPostStore} from "../../redux/features/SelectPost";
 import {getTime, isIn} from "../../utils/util";
 import {CommentInput, PostUserInfo, ShowMoreTest} from "../../components/Common";
 import {Loading} from "../../components/Loading";
 import {LikeList} from "../../components/LikeList";
 import {Grant} from "../../components/Modal/Grant";
+import {AssetPost} from "../Trade";
+import {tradeApi} from "../../actors/trade";
 
-const pageCount = 30
+const pageCount = 5
 
-export const Main = ({scrollContainerRef}: { scrollContainerRef: React.MutableRefObject<null> }) => {
+export const Main = forwardRef((_, ref: any) => {
   const location = useLocation()
   const navigate = useNavigate()
   const {userFeedCai, isAuth, principal} = useAuth()
@@ -64,10 +64,10 @@ export const Main = ({scrollContainerRef}: { scrollContainerRef: React.MutableRe
     const feedApi = new Feed(userFeedCai)
     const res = await feedApi.getHomeFeedByLength(principal, page * pageCount, pageCount)
     if (page === 0) {
-      if (res.length < 30) setIsEnd(true)
+      if (res.length < pageCount) setIsEnd(true)
       return setHomeData(res);
     }
-    if (res.length < 30 || res.length === 0) setIsEnd(true)
+    if (res.length < pageCount || res.length === 0) setIsEnd(true)
     const newArr = [...(data ?? []), ...res]
     setHomeData(newArr);
   }, [page, userFeedCai, principal])
@@ -75,10 +75,10 @@ export const Main = ({scrollContainerRef}: { scrollContainerRef: React.MutableRe
   const getExploreData = React.useCallback(async () => {
     const res = await rootPostApi.get_buckets_latest_feed_from_start(page * pageCount, pageCount)
     if (page === 0) {
-      if (res.length < 30) setIsEnd(true)
+      if (res.length < pageCount) setIsEnd(true)
       return setExploreData(res);
     }
-    if (res.length < 30 || res.length === 0) setIsEnd(true)
+    if (res.length < pageCount || res.length === 0) setIsEnd(true)
     const newArr = [...(data ?? []), ...res]
     setExploreData(newArr);
   }, [page])
@@ -99,6 +99,7 @@ export const Main = ({scrollContainerRef}: { scrollContainerRef: React.MutableRe
   useEffect(() => {
     const ob = new IntersectionObserver((entries) => {
       if (entries[0].isIntersecting) {
+        console.log("bottom")
         setPage((prev) => prev + 1)
       }
     }, {threshold: 0})
@@ -117,7 +118,7 @@ export const Main = ({scrollContainerRef}: { scrollContainerRef: React.MutableRe
       setLikeUsers(undefined)
     }}
               users={likeUsers}/>
-    <div ref={scrollContainerRef} style={{display: showLikeList ? "none" : "flex"}} id={"content_main"}
+    <div ref={ref} style={{display: showLikeList ? "none" : "flex"}} id={"content_main"}
          className={"main_wrap scroll_main"}>
       <div className={"title"}>{Title}</div>
       {data ? data.length === 0 ? <Empty style={{width: "100%"}}/>
@@ -133,15 +134,14 @@ export const Main = ({scrollContainerRef}: { scrollContainerRef: React.MutableRe
     </div>
   </>
 
-}
+})
 
-export const Post = ({post, updateFunction, selectedID, profile, setShowLikeList, setLikeUsers}: {
-  post: postType,
+export const Post = ({post, updateFunction, selectedID, profile, setShowLikeList, setLikeUsers, isTrade}: {
+  post: AssetPost | postType,
   updateFunction: Function,
-  selectedID: string, profile?: Profile, setShowLikeList: Function, setLikeUsers: Function
+  selectedID: string, profile?: Profile, setShowLikeList: Function, setLikeUsers: Function, isTrade?: boolean
 }) => {
   const principal = post.user
-  const navigate = useNavigate()
   const location = useLocation()
   const {principal: user_id, isDark} = useAuth()
   const [hoverOne, setHoverOne] = useState(-1)
@@ -346,13 +346,38 @@ export const Post = ({post, updateFunction, selectedID, profile, setShowLikeList
           })}
         </div>
       </div>
-      <BottomButton post={post} like={like} arg={arg} handleClick={handleClick} hoverOne={hoverOne}
+      <BottomButton isTrade={isTrade} post={post} like={like} arg={arg} handleClick={handleClick} hoverOne={hoverOne}
                     setHoverOne={setHoverOne} showSending={showSending}/>
       <CommentInput setOpen={setOpen} open={open} replyContent={replyContent} setReplyContent={setReplyContent}
                     callBack={sendReply}/>
+      {isTrade && <TradePrice assetPost={post}/>}
     </div>
   </>
 }
+
+
+const TradePrice = React.memo(({assetPost}: { assetPost: AssetPost | postType }) => {
+  const [price, setPrice] = useState<number>()
+
+  useEffect(() => {
+    const getPrice = async () => {
+      if (!("id" in assetPost)) return
+      const res = await tradeApi.get_buy_price(assetPost.id, BigInt(1e8))
+      setPrice(res)
+    }
+    getPrice()
+  }, [assetPost]);
+
+  return <div className={"post_trade_price"} onClick={e => e.stopPropagation()}>
+    <span>
+      {price === undefined ? "-/-" : price + "ICP / Cube"}
+    </span>
+    <span className={"button_wrap"}>
+      <span style={{backgroundColor: "#B4F7B3"}}>Buy</span>
+      <span style={{backgroundColor: "#FFC8C8"}}>Sell</span>
+    </span>
+  </div>
+})
 
 const ImagePreview = ({src, imageCount}: { src: string, imageCount: number }) => {
 
@@ -392,17 +417,18 @@ const ImagePreview = ({src, imageCount}: { src: string, imageCount: number }) =>
   );
 };
 
-const BottomButton = React.memo(({handleClick, hoverOne, setHoverOne, arg, post, like, showSending}: {
+const BottomButton = React.memo(({handleClick, hoverOne, setHoverOne, arg, post, like, showSending, isTrade}: {
   handleClick: Function,
   hoverOne: number,
   setHoverOne: Function,
   arg: { isLike: boolean, isRepost: boolean },
-  post: postType,
+  post: postType | AssetPost,
   like: boolean,
-  showSending: boolean
+  showSending: boolean, isTrade?: boolean
 }) => {
   const {isAuth} = useAuth()
   const [copyShareLink, setCopyShareLink] = useState(false)
+  const na = useNavigate()
 
   const copy = async () => {
     try {
@@ -412,6 +438,11 @@ const BottomButton = React.memo(({handleClick, hoverOne, setHoverOne, arg, post,
       setTimeout(() => setCopyShareLink(false), 1000)
     } catch (e) {
     }
+  }
+
+  const gotoAsset = () => {
+    if ("id" in post)
+      na("/asset/" + Number(post.id))
   }
 
   const handleHover = (index: number) => {
@@ -458,7 +489,7 @@ const BottomButton = React.memo(({handleClick, hoverOne, setHoverOne, arg, post,
       </span>
     </Tooltip>
 
-    <Tooltip title={!isAuth ? "please login first" : ""}>
+    {!isTrade && <Tooltip title={!isAuth ? "please login first" : ""}>
          <span onClick={(e) => {
            if (!isAuth) return 0
            e.stopPropagation()
@@ -473,7 +504,7 @@ const BottomButton = React.memo(({handleClick, hoverOne, setHoverOne, arg, post,
            <Icon color={arg.isRepost || hoverOne === 2 ? "rgb(0,186,124,0.6)" : "black"} name={"repost"}/>
            {post.repost.length}
       </span>
-    </Tooltip>
+    </Tooltip>}
     <span onClick={(e) => {
       e.stopPropagation()
       handleClick(3)
@@ -504,7 +535,7 @@ const BottomButton = React.memo(({handleClick, hoverOne, setHoverOne, arg, post,
     </Tooltip>
     <span onClick={(e) => {
       e.stopPropagation()
-      handleClick(5)
+      isTrade ? gotoAsset() : handleClick(5)
     }}
           style={{
             background: hoverOne === 5 ? "#F0F4FF" : "",
@@ -513,7 +544,7 @@ const BottomButton = React.memo(({handleClick, hoverOne, setHoverOne, arg, post,
           }}
           onMouseEnter={() => handleHover(5)}
           onMouseLeave={e => setHoverOne(-1)}>
-           <Icon name={"grant"}/>
+           <Icon name={isTrade ? "trade_chart" : "grant"}/>
       </span>
   </div>
 })

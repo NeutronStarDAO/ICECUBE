@@ -1,6 +1,6 @@
 import "./index.scss"
 
-import React, {useEffect} from "react"
+import React, {useEffect, useState} from "react"
 import Icon from "../../Icons/Icon";
 import {useAuth} from "../../utils/useAuth";
 import {Receive} from "../../components/Modal/Receive";
@@ -12,8 +12,61 @@ export const Wallet = () => {
   return <div className={"wallet_main"}>
     <div className={"title"}>Wallet</div>
     <Balance/>
+
+    <Holding/>
   </div>
 }
+
+
+const Holding = React.memo(() => {
+  return <div className={"wallet_holding"}>
+    <span className={"title"}>
+      Holding
+    </span>
+    <div className={"card_wrap"}>
+      <Cubes/>
+    </div>
+  </div>
+})
+
+const CubeCard = ({image, cubes, textOverlay}: { image: string, cubes: number, textOverlay: string }) => {
+  const [hover, setHover] = useState(false);
+
+  return (
+    <div
+      className="cube-card"
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+    >
+      <div className="cube-content">
+        {(hover && textOverlay) || !image && (
+          <div style={{backgroundColor: !image ? "inherit" : "rgba(0, 0, 0, 0.4)"}} className="overlay">
+            <p style={{color: !image ? "black" : "white"}}>{textOverlay}</p>
+          </div>
+        )}
+        {image && <img src={image} alt={`Cube ${cubes}`}/>}
+      </div>
+      <div className="cube-label">{cubes} Cubes</div>
+    </div>
+  );
+};
+
+const Cubes = () => {
+  return (
+    <div className="cube-container">
+      {new Array(7).fill(0).map((v, k) => {
+        return <CubeCard
+          image=""
+          cubes={20}
+          textOverlay="aaa"
+          key={k}
+        />
+      })}
+
+    </div>
+  );
+};
+
 
 const Balance = () => {
   const {principal, isAuth} = useAuth()
