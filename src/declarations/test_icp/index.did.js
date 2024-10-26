@@ -131,7 +131,7 @@ export const idlFactory = ({ IDL }) => {
       [Icrc2transferFromResult],
       [],
     ),
-    'mint' : IDL.Func([IDL.Principal, IDL.Nat64], [IDL.Bool], []),
+    'mint' : IDL.Func([IDL.Principal, IDL.Nat], [IDL.Bool], []),
   });
 };
 export const init = ({ IDL }) => { return []; };

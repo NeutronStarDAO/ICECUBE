@@ -13,16 +13,18 @@ import Icon from "../../../Icons/Icon";
 import {Post} from "../../Main";
 import {tradeApi} from "../../../actors/trade";
 import "./index.scss"
-import {TradeEvent} from "../../../declarations/trade";
+import {Asset, TradeEvent} from "../../../declarations/trade";
+import {AssetPost} from "../index";
 
 export const SingleAsset = React.memo(() => {
   const {assetId} = useParams()
-  const [post, setPost] = useState<PostType>()
+  const [post, setPost] = useState<AssetPost>()
   const [showLikeList, setShowLikeList] = useState(false)
   const [likeUsers, setLikeUsers] = useState<Profile[]>()
   const {post: selectPost} = useSelectPostStore()
   const [error, setError] = useState<boolean>(false)
   const [profile, setProfile] = useState<Profile>()
+  const [asset, setAsset] = useState<Asset>()
   const [info, setInfo] = useState({
     postId: "",
     cid: "",
@@ -34,6 +36,7 @@ export const SingleAsset = React.memo(() => {
       if (assetId === undefined) return
       try {
         const asset = await tradeApi.get_asset(BigInt(assetId))
+        setAsset(asset)
         const postId = asset.post_id
         const slice = postId?.split("#")
         const [cid, userId] = slice
@@ -45,9 +48,9 @@ export const SingleAsset = React.memo(() => {
     init()
   }, [assetId]);
 
-  const init = async () => {
+  const getPost = async () => {
     const {cid, postId, userId} = info
-    if (!cid || !postId || !userId || error) return
+    if (!cid || !postId || !userId || error || !asset) return
     try {
       const p_id = Principal.from(cid)
       const api = new Feed(p_id)
@@ -55,8 +58,8 @@ export const SingleAsset = React.memo(() => {
         setProfile(res)
       })
       const res = await api.getPost(postId)
-      if (res.length > 0) {
-        const A = {...res[0], id: BigInt(assetId as string)} as any
+      if (res[0]) {
+        const A = {...res[0], ...asset}
         setPost(A)
       } else throw new Error("post not found")
     } catch (e) {
@@ -67,7 +70,7 @@ export const SingleAsset = React.memo(() => {
 
 
   useEffect(() => {
-    init()
+    getPost()
   }, [info]);
 
   return <>
@@ -86,7 +89,7 @@ export const SingleAsset = React.memo(() => {
       </div>
       {post ? <Post isTrade={true} setLikeUsers={setLikeUsers} profile={profile}
                     selectedID={selectPost ? selectPost.post_id : ""}
-                    updateFunction={init}
+                    updateFunction={getPost}
                     post={post} setShowLikeList={setShowLikeList}/> :
         error ? <Empty style={{width: "100%"}}/> :
           <Loading isShow={true} style={{width: "100%"}}/>}
@@ -147,7 +150,7 @@ const AssetInfo = React.memo(({id}: { id: bigint }) => {
       <div className={"asset_info_body_right"}>
         <div className={"item"}>
           <span>Total Value</span>
-          <span>{totalValue !== undefined ? (totalValue / 1e8).toFixed(2) : "-/-"} ICP</span>
+          <span>{totalValue !== undefined ? (totalValue / 1e8) : "-/-"} ICP</span>
         </div>
         <div className={"item"}>
           <span>Cubes Supply</span>

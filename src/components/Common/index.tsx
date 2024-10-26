@@ -295,10 +295,10 @@ export const PostUserInfo = React.memo(({profile, time, imgStyle, nameStyle, han
 })
 
 
-export const NumberInput = React.memo(({setAmount, placeholder, value}: {
+export const NumberInput = React.memo(({setAmount, placeholder, value, integer}: {
   setAmount: Function,
   value: number,
-  placeholder?: string
+  placeholder?: string, integer?: boolean
 }) => {
 
   return <input value={value} className={"number_input"} type="number" min={0} placeholder={placeholder ?? "0.00"}
@@ -315,8 +315,19 @@ export const NumberInput = React.memo(({setAmount, placeholder, value}: {
                   if (parseFloat(value) < 0) {
                     value = '';
                   }
-                  e.target.value = value;
-                  setAmount(+value)
+                  if (integer) {
+                    if (Number.isInteger(Number(value))) {
+                      e.target.value = value;
+                      setAmount(Number(value));
+                    } else {
+                      e.target.value = ""; // 确保输入框的值为0或空
+                    }
+                  } else {
+                    e.target.value = value
+                    setAmount(+value)
+                  }
+
+
                 }}/>
 })
 

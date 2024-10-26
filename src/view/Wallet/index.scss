@@ -169,18 +169,23 @@
       background-color: #F0F4FF;
       text-align: center;
       cursor: pointer;
+      display: flex;
+      flex-direction: column;
       position: relative;
 
       .cube-content {
-        height: 75%;
         display: flex;
+        height: 75%;
         justify-content: center;
         align-items: center;
         position: relative;
 
         img {
           height: 100%;
-          border-radius: 12px;
+          width: 100%;
+          object-fit: cover;
+          object-position: center;;
+          border-radius: 12px 12px 0 0;
 
         }
 
@@ -201,9 +206,12 @@
       }
 
       .cube-label {
-        margin-top: 8px;
+        height: 25%;
         font-size: 3rem;
         font-weight: 400;
+        display: flex;
+        justify-content: center;
+        align-items: center;
       }
     }
 

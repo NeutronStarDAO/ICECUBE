@@ -7,6 +7,11 @@ import {Receive} from "../../components/Modal/Receive";
 import {Send} from "../../components/Modal/Send";
 import {ledgerApi} from "../../actors/ledger";
 import {ckBTCApi} from "../../actors/ckbtc";
+import {tradeApi} from "../../actors/trade";
+import {Loading} from "../../components/Loading";
+import {Post} from "../../declarations/feed/feed";
+import Feed from "../../actors/feed";
+import {useNavigate} from "react-router-dom";
 
 export const Wallet = () => {
   return <div className={"wallet_main"}>
@@ -19,50 +24,88 @@ export const Wallet = () => {
 
 
 const Holding = React.memo(() => {
+  const {principal} = useAuth()
+  const [holdings, setHoldings] = React.useState<[bigint, bigint][]>()
+
+  useEffect(() => {
+    const getHoldings = async () => {
+      if (principal) {
+        const holdings = await tradeApi.get_holdings(principal)
+        setHoldings(holdings)
+      }
+    }
+    getHoldings()
+  }, [principal]);
+
   return <div className={"wallet_holding"}>
     <span className={"title"}>
       Holding
     </span>
     <div className={"card_wrap"}>
-      <Cubes/>
+      <Cubes holdings={holdings}/>
     </div>
   </div>
 })
 
-const CubeCard = ({image, cubes, textOverlay}: { image: string, cubes: number, textOverlay: string }) => {
+const CubeCard = ({image, cubes, textOverlay, id}: {
+  image: string,
+  cubes: number,
+  textOverlay: string,
+  id: number
+}) => {
   const [hover, setHover] = useState(false);
-
+  const na = useNavigate()
   return (
     <div
       className="cube-card"
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
+      onClick={() => {
+        na("/asset/" + id)
+      }}
     >
       <div className="cube-content">
-        {(hover && textOverlay) || !image && (
-          <div style={{backgroundColor: !image ? "inherit" : "rgba(0, 0, 0, 0.4)"}} className="overlay">
-            <p style={{color: !image ? "black" : "white"}}>{textOverlay}</p>
-          </div>
-        )}
+        {(() => {
+          if ((hover && textOverlay) || !image) {
+            return <div style={{backgroundColor: !image ? "inherit" : "rgba(0, 0, 0, 0.4)"}} className="overlay">
+              <p style={{color: !image ? "black" : "white"}}>{textOverlay}</p>
+            </div>
+          }
+        })()}
         {image && <img src={image} alt={`Cube ${cubes}`}/>}
       </div>
-      <div className="cube-label">{cubes} Cubes</div>
+      <div style={{borderTop: !image ? "1px solid black" : "none"}} className="cube-label">{cubes} Cubes</div>
     </div>
   );
 };
 
-const Cubes = () => {
+const Cubes = ({holdings}: { holdings?: [bigint, bigint][] }) => {
+  const [posts, setPosts] = React.useState<Post[]>()
+  const {userFeedCai} = useAuth()
+  useEffect(() => {
+    const getPost = async () => {
+      if (!holdings || !userFeedCai) return
+      const assetIds = holdings.map(e => e[0])
+      const assets = await Promise.all(assetIds.map(e => tradeApi.get_asset(e)))
+      const postIds = assets.map(e => e.post_id)
+      const api = new Feed(userFeedCai)
+      const posts = await api.batch_get_post(postIds)
+      setPosts(posts)
+    }
+    getPost()
+  }, [holdings]);
+
   return (
     <div className="cube-container">
-      {new Array(7).fill(0).map((v, k) => {
+      {holdings ? holdings.map((v, k) => {
         return <CubeCard
-          image=""
-          cubes={20}
-          textOverlay="aaa"
+          id={Number(v[0])}
+          image={posts ? posts[k].photo_url[0] : ""}
+          cubes={Number(v[1]) / 1e8}
+          textOverlay={posts ? posts[k].content : ""}
           key={k}
         />
-      })}
-
+      }) : <Loading isShow={true} style={{width: "100%"}}/>}
     </div>
   );
 };

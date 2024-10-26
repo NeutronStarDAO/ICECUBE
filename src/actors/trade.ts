@@ -1,6 +1,6 @@
 import {getActor} from "../utils/Actor";
 import {idlFactory} from "../declarations/trade/index.did";
-import {Asset, Result_1, TradeEvent} from "../declarations/trade";
+import {Asset, Result, Result_1, TradeEvent} from "../declarations/trade";
 import type {Principal} from "@dfinity/principal";
 
 const cid = "r4b4l-baaaa-aaaan-qzngq-cai"
@@ -80,6 +80,18 @@ export default class Trade {
     })
   }
 
+  get_sell_price(assetId: bigint, tokenAmount: bigint) {
+    return new Promise<number>(async (resolve, reject) => {
+      try {
+        const actor = await this.getNoIdentityActor()
+        const result = await actor.get_sell_price(assetId, tokenAmount) as bigint
+        resolve(Number(result))
+      } catch (e) {
+        reject(e)
+      }
+    })
+  }
+
   get_recent_trade(id: bigint) {
     return new Promise<TradeEvent[]>(async (resolve, reject) => {
       try {
@@ -145,6 +157,51 @@ export default class Trade {
       }
     })
   }
+
+  buy(assetId: bigint, tokenAmount: bigint) {
+    return new Promise<boolean>(async (resolve, reject) => {
+      try {
+        const actor = await this.getActor()
+        const result = await actor.buy(assetId, tokenAmount) as Result
+        if ("Ok" in result) {
+          resolve(true)
+        } else {
+          reject(result.Err)
+        }
+      } catch (e) {
+        reject(e)
+      }
+    })
+  }
+
+  sell(assetId: bigint, tokenAmount: bigint) {
+    return new Promise<boolean>(async (resolve, reject) => {
+      try {
+        const actor = await this.getActor()
+        const result = await actor.sell(assetId, tokenAmount) as Result
+        if ("Ok" in result) {
+          resolve(true)
+        } else {
+          reject(result.Err)
+        }
+      } catch (e) {
+        reject(e)
+      }
+    })
+  }
+
+  get_holdings(who: Principal) {
+    return new Promise<Array<[bigint, bigint]>>(async (resolve, reject) => {
+      try {
+        const actor = await this.getNoIdentityActor()
+        const result = await actor.get_holdings(who) as Array<[bigint, bigint]>
+        resolve(result)
+      } catch (e) {
+        reject(e)
+      }
+    })
+  }
+
 }
 
 export const tradeApi = new Trade()

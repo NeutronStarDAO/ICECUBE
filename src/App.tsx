@@ -21,6 +21,7 @@ import {SinglePost} from "./view/Main/SinglePost";
 import {TopicPost} from "./view/TopicPost";
 import {Trade} from "./view/Trade";
 import {SingleAsset} from "./view/Trade/SingleAsset";
+import {test_icp_api} from "./actors/test_icp";
 
 const userFeedCai = Principal.from("mai5z-6yaaa-aaaan-qmtmq-cai")
 
@@ -81,6 +82,10 @@ function App() {
     }
   };
 
+
+  // useEffect(() => {
+  //   principal && test_icp_api.icrc1_balance_of(principal).then(e=>console.log(e))
+  // }, [principal]);
 
   useEffect(() => {
     if (isDark) {
