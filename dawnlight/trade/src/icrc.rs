@@ -73,7 +73,7 @@ pub enum TransferFromResult {
     Err(TransferFromError) 
 }
 
-pub async fn icrc_1_balance_of(token: Principal, user: Principal) -> Nat {
+pub async fn icrc1_balance_of(token: Principal, user: Principal) -> Nat {
     let args = Account {
         owner: user,
         subaccount: None
@@ -81,14 +81,14 @@ pub async fn icrc_1_balance_of(token: Principal, user: Principal) -> Nat {
     
     let result = ic_cdk::call::<(Account, ), (Nat, )>(
         token, 
-        "icrc_1_balance_of", 
+        "icrc1_balance_of", 
         (args, )
     ).await.unwrap().0;
 
     result
 }
 
-pub async fn icrc_1_transfer(token: Principal, to: Principal, amount: Nat) -> TransferResult {
+pub async fn icrc1_transfer(token: Principal, to: Principal, amount: Nat) -> TransferResult {
     let args = TransferArg {
         to: Account {
             owner: to,
@@ -103,14 +103,14 @@ pub async fn icrc_1_transfer(token: Principal, to: Principal, amount: Nat) -> Tr
     
     let result = ic_cdk::call::<(TransferArg, ), (TransferResult, )>(
         token, 
-        "icrc_1_transfer", 
+        "icrc1_transfer", 
         (args, )
     ).await.unwrap().0;
 
     result
 }
 
-pub async fn icrc_2_allowance(token: Principal, account: Principal, spender: Principal) -> Allowance {
+pub async fn icrc2_allowance(token: Principal, account: Principal, spender: Principal) -> Allowance {
     let args = AllowanceArgs {
         account: Account {
             owner: account,
@@ -123,14 +123,14 @@ pub async fn icrc_2_allowance(token: Principal, account: Principal, spender: Pri
     };
     let result = ic_cdk::call::<(AllowanceArgs, ), (Allowance,)>(
         token, 
-        "icrc_2_allowance", 
+        "icrc2_allowance", 
         (args, )
     ).await.unwrap().0;
 
     result
 }
 
-pub async fn icrc_2_transfer_from(token: Principal, from: Principal, to: Principal, amount: Nat) -> TransferFromResult {
+pub async fn icrc2_transfer_from(token: Principal, from: Principal, to: Principal, amount: Nat) -> TransferFromResult {
     let args = TransferFromArgs {
         to: Account {
             owner: to,
@@ -149,7 +149,7 @@ pub async fn icrc_2_transfer_from(token: Principal, from: Principal, to: Princip
     
     let result = ic_cdk::call::<(TransferFromArgs, ), (TransferFromResult, )>(
         token, 
-        "icrc_2_transfer_from", 
+        "icrc2_transfer_from", 
         (args, )
     ).await.unwrap().0;
 

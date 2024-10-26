@@ -95,6 +95,7 @@ pub struct Account {
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct TokenInitArgs {
+    pub asset_id: u64,
     pub decimals: u8,
     pub fee: Nat,
     pub mintint_account: Option<Account>,
@@ -103,8 +104,19 @@ pub struct TokenInitArgs {
     pub init_balances: Vec<(Principal, Nat)>
 }
 
-#[derive(CandidType, Deserialize)]
-pub enum TokenError {
-    TokenNotExist,
-    Unauthorized
+#[derive(CandidType, Deserialize, Debug, Clone)]
+pub enum TradeError {
+    AssetAlreadyCreated,
+    AssetNotExist,
+    Unauthorized,
+    PostNotExistInBucket,
+    GenericError{ message: String, error_code: candid::Nat },
+    TemporarilyUnavailable,
+    InsufficientAllowance{ allowance: candid::Nat },
+    BadBurn{ min_burn_amount: candid::Nat },
+    Duplicate{ duplicate_of: candid::Nat },
+    BadFee{ expected_fee: candid::Nat },
+    CreatedInFuture{ ledger_time: u64 },
+    TooOld,
+    InsufficientFunds{ balance: candid::Nat },
 }

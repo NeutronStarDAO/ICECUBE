@@ -50,11 +50,6 @@
       "package": "trade",
       "type": "rust"
     },
-    "token": {
-      "candid": "dawnlight/token/token.did",
-      "package": "token",
-      "type": "rust"
-    },
     "test_icp": {
       "candid": "test_icp/test_icp.did",
       "package": "test_icp",

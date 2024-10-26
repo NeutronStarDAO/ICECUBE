@@ -12,7 +12,6 @@ members = [
     "user",
     "data_analysis",
     "dawnlight/trade",
-    "dawnlight/token",
     "test_icp"
 ]
 resolver = "2"

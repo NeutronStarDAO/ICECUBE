@@ -378,11 +378,16 @@ impl Token {
             return Icrc2transferFromResult::Err(TransferFromError::TooOld);
         }
 
-        let balance = self.icrc1_balance_of(args.from);
+        let from_balance = self.icrc1_balance_of(args.from.clone());
         
-        if balance < args.amount {
-            return Icrc2transferFromResult::Err(TransferFromError::InsufficientFunds { balance: balance });
+        if from_balance < args.amount {
+            return Icrc2transferFromResult::Err(TransferFromError::InsufficientFunds { balance: from_balance });
         }
+
+        self.balances.insert(args.from.owner, from_balance - args.amount.clone());
+
+        let to_balance = self.icrc1_balance_of(args.to.clone());
+        self.balances.insert(args.to.owner, to_balance + args.amount);
 
         let tx_index = self.transfer_from_tx_index.clone();
         self.transfer_from_tx_index += 1u8;
@@ -409,6 +414,7 @@ thread_local! {
         StableCell::init(
             MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(0))), 
             Token::init(TokenInitArgs {
+                asset_id: 0,
                 decimals: 8,
                 fee: Nat::from(10_000u64),
                 mintint_account: None,

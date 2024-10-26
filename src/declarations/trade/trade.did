@@ -1,8 +1,8 @@
+type Account = record { owner : principal; subaccount : opt blob };
 type Asset = record {
   id : nat64;
   creator : principal;
   post_id : text;
-  token_id : nat64;
   time : nat64;
 };
 type CreateEvent = record {
@@ -10,11 +10,14 @@ type CreateEvent = record {
   post_id : text;
   asset_id : nat64;
 };
-type Error = variant {
+type Icrc1supportedStandardsResult = record { url : text; name : text };
+type RemoveEvent = record { sender : principal; asset_id : nat64 };
+type Result = variant { Ok; Err : TradeError };
+type Result_1 = variant { Ok : nat64; Err : TradeError };
+type TradeError = variant {
   GenericError : record { message : text; error_code : nat };
   TemporarilyUnavailable;
   InsufficientAllowance : record { allowance : nat };
-  CreateTokenError;
   BadBurn : record { min_burn_amount : nat };
   Duplicate : record { duplicate_of : nat };
   AssetNotExist;
@@ -26,9 +29,6 @@ type Error = variant {
   PostNotExistInBucket;
   InsufficientFunds : record { balance : nat };
 };
-type RemoveEvent = record { sender : principal; asset_id : nat64 };
-type Result = variant { Ok; Err : Error };
-type Result_1 = variant { Ok : record { nat64; nat64 }; Err : Error };
 type TradeEvent = record {
   token_amount : nat;
   trade_type : TradeType;
@@ -38,30 +38,42 @@ type TradeEvent = record {
   asset_id : nat64;
 };
 type TradeType = variant { Buy; Mint; Sell };
+type Value = variant { Int : int; Nat : nat; Blob : blob; Text : text };
 service : {
+  batch_get_asset : (vec nat64) -> (vec opt Asset) query;
   buy : (nat64, nat) -> (Result);
   create : (text) -> (Result_1);
   get_asset : (nat64) -> (opt Asset) query;
   get_asset_entries : () -> (vec Asset) query;
   get_asset_entries_by_len : (nat64, nat64) -> (vec Asset) query;
   get_asset_index : () -> (nat64) query;
-  get_asset_to_token : (nat64) -> (opt nat64) query;
   get_buy_price : (nat64, nat) -> (nat) query;
   get_buy_price_after_fee : (nat64, nat) -> (nat) query;
   get_create_events : () -> (vec CreateEvent) query;
   get_creator_fee_precent : () -> (nat64) query;
   get_creator_premint : () -> (nat64) query;
-  get_holders : (nat64) -> (vec record { principal; nat }) composite_query;
-  get_holdings : (principal) -> (vec record { nat64; nat }) composite_query;
+  get_holders : (nat64) -> (vec record { principal; nat }) query;
+  get_holdings : (principal) -> (vec record { nat64; nat }) query;
   get_pool_value : (nat64) -> (opt nat) query;
   get_recent_trade : (nat64) -> (vec TradeEvent) query;
   get_remove_events : () -> (vec RemoveEvent) query;
   get_sell_price : (nat64, nat) -> (nat) query;
   get_sell_price_after_fee : (nat64, nat) -> (nat) query;
-  get_share_supply : (nat64) -> (opt nat) query;
   get_trade_events : () -> (vec TradeEvent) query;
+  icrc1_balance_of : (nat64, principal) -> (nat) query;
+  icrc1_decimals : (nat64) -> (nat8) query;
+  icrc1_fee : (nat64) -> (nat) query;
+  icrc1_metadata : (nat64) -> (vec record { text; Value }) query;
+  icrc1_minting_account : (nat64) -> (opt Account) query;
+  icrc1_name : (nat64) -> (text) query;
+  icrc1_supported_standards : (nat64) -> (
+      vec Icrc1supportedStandardsResult,
+    ) query;
+  icrc1_symbol : (nat64) -> (text) query;
+  icrc1_total_supply : (nat64) -> (nat) query;
   is_post_be_asset : (text) -> (opt nat64) query;
   is_posts_be_assets : (vec text) -> (vec opt nat64) query;
   remove : (nat64) -> (Result);
   sell : (nat64, nat) -> (Result);
+  test_update_canister : (principal) -> (bool);
 }
