@@ -600,20 +600,20 @@ fn icrc2_transfer_from(token_id: u64, args: TransferFromArgs) -> Result<Icrc2tra
 }
 
 #[ic_cdk::update]
-fn mint(token_id: u64, to: Principal, amount: u64) -> bool {
+fn mint(token_id: u64, to: Principal, amount: Nat) -> bool {
     assert!(ic_cdk::caller() == TRADE_CA.with(|ca| ca.borrow().get().clone()));
     match TOKENS.with(|map| {
         map.borrow().get(&token_id)
     }) {
         None => false,
         Some(mut token) => {
-            token.mint(vec![(to, Nat::from(amount))])
+            token.mint(vec![(to, amount)])
         }
     }
 }
 
 #[ic_cdk::update]
-fn burn(token_id: u64, from: Principal, amount: u64) -> bool {
+fn burn(token_id: u64, from: Principal, amount: Nat) -> bool {
     assert!(ic_cdk::caller() == TRADE_CA.with(|ca| ca.borrow().get().clone()));
     match TOKENS.with(|map| {
         map.borrow().get(&token_id)

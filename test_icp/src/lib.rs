@@ -536,12 +536,12 @@ fn icrc2_transfer_from(args: TransferFromArgs) -> Icrc2transferFromResult {
 }
 
 #[ic_cdk::update]
-fn mint(to: Principal, amount: u64) -> bool {
+fn mint(to: Principal, amount: Nat) -> bool {
     let mut token = TOKEN.with(|value| {
         value.borrow().get().clone()
     });
 
-    let mint_result = token.mint(vec![(to, Nat::from(amount))]);
+    let mint_result = token.mint(vec![(to, amount)]);
 
     TOKEN.with(|value| {
         value.borrow_mut().set(token).unwrap()

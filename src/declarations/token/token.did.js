@@ -143,7 +143,7 @@ export const idlFactory = ({ IDL }) => {
     'Err' : TokenError,
   });
   return IDL.Service({
-    'burn' : IDL.Func([IDL.Nat64, IDL.Principal, IDL.Nat64], [IDL.Bool], []),
+    'burn' : IDL.Func([IDL.Nat64, IDL.Principal, IDL.Nat], [IDL.Bool], []),
     'create' : IDL.Func([TokenInitArgs], [Result], []),
     'get_holders' : IDL.Func(
         [IDL.Nat64],
@@ -171,7 +171,7 @@ export const idlFactory = ({ IDL }) => {
         [Result_10],
         [],
       ),
-    'mint' : IDL.Func([IDL.Nat64, IDL.Principal, IDL.Nat64], [IDL.Bool], []),
+    'mint' : IDL.Func([IDL.Nat64, IDL.Principal, IDL.Nat], [IDL.Bool], []),
   });
 };
 export const init = ({ IDL }) => { return []; };

@@ -40,10 +40,13 @@ struct TradeEvent {
     asset_id: u64,
     trade_type: TradeType,
     sender: Principal,
-    token_amount: u64,
-    icp_amount: u64,
-    creator_fee: u64
+    token_amount: Nat,
+    icp_amount: Nat,
+    creator_fee: Nat
 }
+
+#[derive(CandidType, Deserialize, Debug, Clone)]
+struct NatRust(Nat);
 
 #[derive(CandidType, Deserialize, Debug, Clone)]
 enum  TradeType {
@@ -120,6 +123,16 @@ impl Storable for TradeEvent {
     }
 }
 
+impl Storable for NatRust {
+    const BOUND: Bound = Bound::Unbounded;
+    fn to_bytes(&self) -> std::borrow::Cow<[u8]> {
+        Cow::Owned(Encode!(self).unwrap())
+    }
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Self {
+        Decode!(bytes.as_ref(), Self).unwrap()
+    }
+}
+
 const CREATOR_PREMINT: u64 = 100_000_000; // 1e8
 const CREATOR_FEE_PERCENT: u64 = 5_000_000; // 5_000_000 / 1e8 = 5%
 const TOKEN_FEE: u64 = 0; 
@@ -164,14 +177,14 @@ thread_local! {
     );
 
     // asset_id -> pool_value
-    static POOL_VALUE: RefCell<StableBTreeMap<u64, u64, Memory>> = RefCell::new(
+    static POOL_VALUE: RefCell<StableBTreeMap<u64, NatRust, Memory>> = RefCell::new(
         StableBTreeMap::init(
             MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(5)))
         )
     );
 
     // asset_id -> asset_token_supply
-    static SUPPLY_MAP: RefCell<StableBTreeMap<u64, u64, Memory>> = RefCell::new(
+    static SUPPLY_MAP: RefCell<StableBTreeMap<u64, NatRust, Memory>> = RefCell::new(
         StableBTreeMap::init(
             MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(6)))
         )
@@ -370,13 +383,13 @@ fn get_asset_to_token(asset_id: u64) -> Option<u64> {
 }
 
 #[ic_cdk::query]
-fn get_pool_value(asset_id: u64) -> Option<u64> {
-    POOL_VALUE.with(|map| {
+fn get_pool_value(asset_id: u64) -> Option<Nat> {
+   POOL_VALUE.with(|map| {
         match map.borrow().get(&asset_id) {
             None => None,
-            Some(pool_value) => Some(pool_value)
+            Some(pool_value) => Some(pool_value.0)
         }
-    })
+    }) 
 }
 
 #[ic_cdk::query]
@@ -412,10 +425,13 @@ async fn get_holders(asset_id: u64) -> Vec<(Principal, Nat)> {
 }
 
 #[ic_cdk::query]
-fn get_share_supply(asset_id: u64) -> Option<u64> {
-    SUPPLY_MAP.with(|map| {
+fn get_share_supply(asset_id: u64) -> Option<Nat> {
+    match SUPPLY_MAP.with(|map| {
         map.borrow().get(&asset_id)
-    })
+    }) {
+        None => None,
+        Some(supply) => Some(supply.0)
+    }
 }
 
 #[ic_cdk::query]
@@ -513,7 +529,7 @@ async fn create(post_id: String) -> Result<(u64, u64), Error> {
                     };
 
                     SUPPLY_MAP.with(|map| {
-                        map.borrow_mut().insert(asset_id, CREATOR_PREMINT)
+                        map.borrow_mut().insert(asset_id, NatRust(Nat::from(CREATOR_PREMINT)))
                     });
 
                     CREATE_EVENT.with(|logs| {
@@ -529,9 +545,9 @@ async fn create(post_id: String) -> Result<(u64, u64), Error> {
                             asset_id: asset_id,
                             trade_type: TradeType::Mint,
                             sender: caller,
-                            token_amount: CREATOR_PREMINT,
-                            icp_amount: 0,
-                            creator_fee: 0
+                            token_amount: Nat::from(CREATOR_PREMINT),
+                            icp_amount: Nat::from(0u8),
+                            creator_fee: Nat::from(0u8)
                         }).unwrap()
                     });
 
@@ -575,19 +591,19 @@ fn remove(asset_id: u64) -> Result<(), Error> {
 }
 
 #[ic_cdk::update]
-async fn buy(asset_id: u64, amount: u64) -> Result<(), Error> {
+async fn buy(asset_id: u64, amount: Nat) -> Result<(), Error> {
     if asset_id >= ASSET_INDEX.with(|index| index.borrow().get().clone()) {
         return Err(Error::AssetNotExist);
     }
     let caller = ic_cdk::caller();
-    let price = get_buy_price(asset_id, amount);
-    let creator_fee = (price * CREATOR_FEE_PERCENT) / CREATOR_PREMINT;
+    let price = get_buy_price(asset_id, amount.clone());
+    let creator_fee = (price.clone() * CREATOR_FEE_PERCENT) / CREATOR_PREMINT;
 
     let transfer_from_result = icrc::icrc_2_transfer_from(
         ICP_CA.with(|ca| ca.borrow().get().clone()), 
         caller, 
         ic_cdk::api::id(), 
-        price + creator_fee
+        price.clone() + creator_fee.clone()
     ).await;
 
     match transfer_from_result {
@@ -610,12 +626,12 @@ async fn buy(asset_id: u64, amount: u64) -> Result<(), Error> {
             }) {
                 None => {
                     SUPPLY_MAP.with(|map| {
-                        map.borrow_mut().insert(asset_id, amount)
+                        map.borrow_mut().insert(asset_id, NatRust(amount.clone()))
                     });
                 },
                 Some(old_supply) => {
                     SUPPLY_MAP.with(|map| {
-                        map.borrow_mut().insert(asset_id, old_supply + amount)
+                        map.borrow_mut().insert(asset_id, NatRust(old_supply.0 + amount.clone()))
                     });
                 }
             }
@@ -625,12 +641,12 @@ async fn buy(asset_id: u64, amount: u64) -> Result<(), Error> {
             }) {
                 None => {
                     POOL_VALUE.with(|map| {
-                        map.borrow_mut().insert(asset_id, price)
+                        map.borrow_mut().insert(asset_id, NatRust(price.clone()))
                     });
                 },
                 Some(old_value) => {
                     POOL_VALUE.with(|map| {
-                        map.borrow_mut().insert(asset_id, old_value + price)
+                        map.borrow_mut().insert(asset_id, NatRust(old_value.0 + price.clone()))
                     });
                 }
             }
@@ -640,10 +656,10 @@ async fn buy(asset_id: u64, amount: u64) -> Result<(), Error> {
             }) {
                 None => return Err(Error::GenericError { message: String::from("Not Found Token_Id"), error_code: Nat::from(400u32) }),
                 Some(token_id) => {
-                    let mint_result = ic_cdk::call::<(u64, Principal, u64, ), (bool, )>(
-                        ICP_CA.with(|ca| ca.borrow().get().clone()), 
+                    let mint_result = ic_cdk::call::<(u64, Principal, Nat, ), (bool, )>(
+                        TOKEN_CA.with(|ca| ca.borrow().get().clone()), 
                         "mint", 
-                        (token_id, caller, amount, )
+                        (token_id, caller, amount.clone(), )
                     ).await.unwrap().0;
                     assert!(mint_result);
 
@@ -653,8 +669,8 @@ async fn buy(asset_id: u64, amount: u64) -> Result<(), Error> {
                             trade_type: TradeType::Buy,
                             sender: caller,
                             token_amount: amount,
-                            icp_amount: price,
-                            creator_fee: creator_fee
+                            icp_amount: price.clone(),
+                            creator_fee: creator_fee.clone()
                         }).unwrap()
                     });
                     
@@ -664,7 +680,7 @@ async fn buy(asset_id: u64, amount: u64) -> Result<(), Error> {
                     let send_creator_fee_result = icrc::icrc_1_transfer(
                         ICP_CA.with(|ca| ca.borrow().get().clone()), 
                         creator, 
-                        creator_fee
+                        creator_fee.clone()
                     ).await;
                     match send_creator_fee_result {
                         icrc::TransferResult::Err(err) => {
@@ -690,7 +706,7 @@ async fn buy(asset_id: u64, amount: u64) -> Result<(), Error> {
 }
 
 #[ic_cdk::update]
-async fn sell(asset_id: u64, amount: u64) -> Result<(), Error> {
+async fn sell(asset_id: u64, amount: Nat) -> Result<(), Error> {
     if asset_id >= ASSET_INDEX.with(|index| index.borrow().get().clone()) {
         return Err(Error::AssetNotExist);
     }
@@ -700,7 +716,7 @@ async fn sell(asset_id: u64, amount: u64) -> Result<(), Error> {
         TOKEN_CA.with(|ca| ca.borrow().get().clone()), 
         caller
     ).await;
-    if balance < Nat::from(amount) {
+    if balance < amount.clone() {
         return Err(Error::InsufficientFunds { balance: balance });
     }
 
@@ -709,22 +725,22 @@ async fn sell(asset_id: u64, amount: u64) -> Result<(), Error> {
     }) {
         None => Err(Error::AssetNotExist),
         Some(supply) => {
-            if CREATOR_PREMINT + amount > supply {
+            if CREATOR_PREMINT + amount.clone() > supply.0 {
                 return Err(Error::GenericError { message: String::from("Supply not allowed below premint amount"), error_code: Nat::from(400u32) });
             }
 
-            let price = get_sell_price(asset_id, amount);
-            let creator_fee = (price * CREATOR_FEE_PERCENT) / CREATOR_PREMINT;
+            let price = get_sell_price(asset_id, amount.clone());
+            let creator_fee = (price.clone() * CREATOR_FEE_PERCENT) / CREATOR_PREMINT;
 
             match ASSET_TO_TOKEN.with(|map| {
                 map.borrow().get(&asset_id)
             }) {
                 None => return Err(Error::GenericError { message: String::from("Not Found Token_Id"), error_code: Nat::from(400u32) }),
                 Some(token_id) => {
-                    let burn_result = ic_cdk::call::<(u64, Principal, u64, ), (bool, )>(
+                    let burn_result = ic_cdk::call::<(u64, Principal, Nat, ), (bool, )>(
                         TOKEN_CA.with(|ca| ca.borrow().get().clone()), 
                         "burn", 
-                        (token_id, caller, amount, )
+                        (token_id, caller, amount.clone(), )
                     ).await.unwrap().0;
                     assert!(burn_result);
                     
@@ -734,7 +750,7 @@ async fn sell(asset_id: u64, amount: u64) -> Result<(), Error> {
                         None => return Err(Error::GenericError { message: String::from("Supply Map Error"), error_code: Nat::from(400u32) }),
                         Some(old_supply) => {
                             SUPPLY_MAP.with(|map| {
-                                map.borrow_mut().insert(asset_id, old_supply - amount)
+                                map.borrow_mut().insert(asset_id, NatRust(old_supply.0 - amount.clone()))
                             });
                         }
                     }
@@ -745,7 +761,7 @@ async fn sell(asset_id: u64, amount: u64) -> Result<(), Error> {
                         None => return Err(Error::GenericError { message: String::from("Pool Value Map Error"), error_code: Nat::from(400u32) }),
                         Some(old_value) => {
                             POOL_VALUE.with(|map| {
-                                map.borrow_mut().insert(asset_id, old_value - price)
+                                map.borrow_mut().insert(asset_id, NatRust(old_value.0 - price.clone()))
                             });
                         }
                     }
@@ -755,16 +771,16 @@ async fn sell(asset_id: u64, amount: u64) -> Result<(), Error> {
                             asset_id: asset_id,
                             trade_type: TradeType::Sell,
                             sender: caller,
-                            token_amount: amount,
-                            icp_amount: price,
-                            creator_fee: creator_fee
+                            token_amount: amount.clone(),
+                            icp_amount: price.clone(),
+                            creator_fee: creator_fee.clone()
                         }).unwrap()
                     });
 
                     let send_sell_result = icrc::icrc_1_transfer(
                         ICP_CA.with(|ca| ca.borrow().get().clone()), 
                         caller, 
-                        price - creator_fee
+                        price - creator_fee.clone()
                     ).await;
                     match send_sell_result {
                         icrc::TransferResult::Err(err) => {
@@ -814,45 +830,45 @@ async fn sell(asset_id: u64, amount: u64) -> Result<(), Error> {
 }
 
 #[ic_cdk::query]
-fn get_buy_price(asset_id: u64, amount: u64) -> u64 {
+fn get_buy_price(asset_id: u64, amount: Nat) -> Nat {
     let supply = SUPPLY_MAP.with(|map| {
         map.borrow().get(&asset_id)
     }).unwrap();
-    get_price(supply, amount)
+    get_price(supply.0, amount)
 }
 
 #[ic_cdk::query]
-fn get_sell_price(asset_id: u64, amount: u64) -> u64 {
+fn get_sell_price(asset_id: u64, amount: Nat) -> Nat {
     let supply = SUPPLY_MAP.with(|map| {
         map.borrow().get(&asset_id)
     }).unwrap();
-    get_price(supply - amount, amount)
+    get_price(supply.0 - amount.clone(), amount)
 }
 
 #[ic_cdk::query]
-fn get_buy_price_after_fee(asset_id: u64, amount: u64) -> u64 {
+fn get_buy_price_after_fee(asset_id: u64, amount: Nat) -> Nat {
     let price = get_buy_price(asset_id, amount);
-    let creator_fee = (price * CREATOR_FEE_PERCENT) / CREATOR_PREMINT;
+    let creator_fee = (price.clone() * CREATOR_FEE_PERCENT) / CREATOR_PREMINT;
     price + creator_fee
 }
 
 #[ic_cdk::query]
-fn get_sell_price_after_fee(asset_id: u64, amount: u64) -> u64 {
+fn get_sell_price_after_fee(asset_id: u64, amount: Nat) -> Nat {
     let price = get_sell_price(asset_id, amount);
-    let creator_fee = (price * CREATOR_FEE_PERCENT) / CREATOR_PREMINT;
-    price - creator_fee
+    let creator_fee = (price.clone() * CREATOR_FEE_PERCENT) / CREATOR_PREMINT;
+    price.clone() - creator_fee
 }
 
-fn curve(x: u64) -> u64 {
+fn curve(x: Nat) -> Nat {
     if x <= CREATOR_PREMINT {
-        0
+        Nat::from(0u8)
     } else {
-        (x - CREATOR_PREMINT) * (x - CREATOR_PREMINT) * (x - CREATOR_PREMINT)
+        (x.clone() - CREATOR_PREMINT) * (x.clone() - CREATOR_PREMINT) * (x.clone() - CREATOR_PREMINT)
     }
 }
 
-fn get_price(supply: u64, amount: u64) -> u64 {
-    (curve(supply + amount) - curve(supply)) / CREATOR_PREMINT / CREATOR_PREMINT / 500u64
+fn get_price(supply: Nat, amount: Nat) -> Nat {
+    (curve(supply.clone() + amount.clone()) - curve(supply.clone())) / CREATOR_PREMINT / CREATOR_PREMINT / 500u64
 }
 
 fn check_post_id(

@@ -89,7 +89,7 @@ type TransferFromError = variant {
 };
 type Value = variant { Int : int; Nat : nat; Blob : blob; Text : text };
 service : {
-  burn : (nat64, principal, nat64) -> (bool);
+  burn : (nat64, principal, nat) -> (bool);
   create : (TokenInitArgs) -> (Result);
   get_holders : (nat64) -> (vec record { principal; nat }) query;
   icrc1_balance_of : (nat64, Account) -> (Result_1) query;
@@ -105,5 +105,5 @@ service : {
   icrc2_allowance : (nat64, AllowanceArgs) -> (Result_8) query;
   icrc2_approve : (nat64, ApproveArgs) -> (Result_9);
   icrc2_transfer_from : (nat64, TransferFromArgs) -> (Result_10);
-  mint : (nat64, principal, nat64) -> (bool);
+  mint : (nat64, principal, nat) -> (bool);
 }

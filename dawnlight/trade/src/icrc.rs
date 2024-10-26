@@ -88,7 +88,7 @@ pub async fn icrc_1_balance_of(token: Principal, user: Principal) -> Nat {
     result
 }
 
-pub async fn icrc_1_transfer(token: Principal, to: Principal, amount: u64) -> TransferResult {
+pub async fn icrc_1_transfer(token: Principal, to: Principal, amount: Nat) -> TransferResult {
     let args = TransferArg {
         to: Account {
             owner: to,
@@ -130,7 +130,7 @@ pub async fn icrc_2_allowance(token: Principal, account: Principal, spender: Pri
     result
 }
 
-pub async fn icrc_2_transfer_from(token: Principal, from: Principal, to: Principal, amount: u64) -> TransferFromResult {
+pub async fn icrc_2_transfer_from(token: Principal, from: Principal, to: Principal, amount: Nat) -> TransferFromResult {
     let args = TransferFromArgs {
         to: Account {
             owner: to,
@@ -144,7 +144,7 @@ pub async fn icrc_2_transfer_from(token: Principal, from: Principal, to: Princip
         },
         memo: None,
         created_at_time: None,
-        amount: Nat::from(amount)
+        amount: amount
     };
     
     let result = ic_cdk::call::<(TransferFromArgs, ), (TransferFromResult, )>(

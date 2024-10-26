@@ -41,11 +41,11 @@ export const idlFactory = ({ IDL }) => {
     'Sell' : IDL.Null,
   });
   const TradeEvent = IDL.Record({
-    'token_amount' : IDL.Nat64,
+    'token_amount' : IDL.Nat,
     'trade_type' : TradeType,
     'sender' : IDL.Principal,
-    'creator_fee' : IDL.Nat64,
-    'icp_amount' : IDL.Nat64,
+    'creator_fee' : IDL.Nat,
+    'icp_amount' : IDL.Nat,
     'asset_id' : IDL.Nat64,
   });
   const RemoveEvent = IDL.Record({
@@ -53,7 +53,7 @@ export const idlFactory = ({ IDL }) => {
     'asset_id' : IDL.Nat64,
   });
   return IDL.Service({
-    'buy' : IDL.Func([IDL.Nat64, IDL.Nat64], [Result], []),
+    'buy' : IDL.Func([IDL.Nat64, IDL.Nat], [Result], []),
     'create' : IDL.Func([IDL.Text], [Result_1], []),
     'get_asset' : IDL.Func([IDL.Nat64], [IDL.Opt(Asset)], ['query']),
     'get_asset_entries' : IDL.Func([], [IDL.Vec(Asset)], ['query']),
@@ -68,10 +68,10 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Opt(IDL.Nat64)],
         ['query'],
       ),
-    'get_buy_price' : IDL.Func([IDL.Nat64, IDL.Nat64], [IDL.Nat64], ['query']),
+    'get_buy_price' : IDL.Func([IDL.Nat64, IDL.Nat], [IDL.Nat], ['query']),
     'get_buy_price_after_fee' : IDL.Func(
-        [IDL.Nat64, IDL.Nat64],
-        [IDL.Nat64],
+        [IDL.Nat64, IDL.Nat],
+        [IDL.Nat],
         ['query'],
       ),
     'get_create_events' : IDL.Func([], [IDL.Vec(CreateEvent)], ['query']),
@@ -87,20 +87,20 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(IDL.Tuple(IDL.Nat64, IDL.Nat))],
         ['composite_query'],
       ),
-    'get_pool_value' : IDL.Func([IDL.Nat64], [IDL.Opt(IDL.Nat64)], ['query']),
+    'get_pool_value' : IDL.Func([IDL.Nat64], [IDL.Opt(IDL.Nat)], ['query']),
     'get_recent_trade' : IDL.Func(
         [IDL.Nat64],
         [IDL.Vec(TradeEvent)],
         ['query'],
       ),
     'get_remove_events' : IDL.Func([], [IDL.Vec(RemoveEvent)], ['query']),
-    'get_sell_price' : IDL.Func([IDL.Nat64, IDL.Nat64], [IDL.Nat64], ['query']),
+    'get_sell_price' : IDL.Func([IDL.Nat64, IDL.Nat], [IDL.Nat], ['query']),
     'get_sell_price_after_fee' : IDL.Func(
-        [IDL.Nat64, IDL.Nat64],
-        [IDL.Nat64],
+        [IDL.Nat64, IDL.Nat],
+        [IDL.Nat],
         ['query'],
       ),
-    'get_share_supply' : IDL.Func([IDL.Nat64], [IDL.Opt(IDL.Nat64)], ['query']),
+    'get_share_supply' : IDL.Func([IDL.Nat64], [IDL.Opt(IDL.Nat)], ['query']),
     'get_trade_events' : IDL.Func([], [IDL.Vec(TradeEvent)], ['query']),
     'is_post_be_asset' : IDL.Func([IDL.Text], [IDL.Opt(IDL.Nat64)], ['query']),
     'is_posts_be_assets' : IDL.Func(
@@ -109,7 +109,7 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'remove' : IDL.Func([IDL.Nat64], [Result], []),
-    'sell' : IDL.Func([IDL.Nat64, IDL.Nat64], [Result], []),
+    'sell' : IDL.Func([IDL.Nat64, IDL.Nat], [Result], []),
   });
 };
 export const init = ({ IDL }) => { return []; };

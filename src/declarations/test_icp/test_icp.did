@@ -79,5 +79,5 @@ service : {
   icrc2_allowance : (AllowanceArgs) -> (Icrc2allowanceResult) query;
   icrc2_approve : (ApproveArgs) -> (Icrc2approveResult);
   icrc2_transfer_from : (TransferFromArgs) -> (Icrc2transferFromResult);
-  mint : (principal, nat64) -> (bool);
+  mint : (principal, nat) -> (bool);
 }
