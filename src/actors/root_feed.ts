@@ -8,8 +8,7 @@ const rootFeedCai = "n7aoo-5aaaa-aaaan-qmtia-cai"
 class rootFeed {
 
   private static async getActor() {
-    const agent = CommonStore.getAgent()
-    return await getActor2.createActor(idlFactory, rootFeedCai, agent);
+    return await getActor2.createActor(idlFactory, rootFeedCai);
   }
 
   private static async getNoIdentityActor() {

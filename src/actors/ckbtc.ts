@@ -9,8 +9,7 @@ const indexCai = "mxzaz-hqaaa-aaaar-qaada-cai"
 export default class CkBTC {
 
   private async getActor() {
-    const agent = CommonStore.getAgent()
-    return await getActor2.createActor(idlFactory, indexCai, agent);
+    return await getActor2.createActor(idlFactory, indexCai);
   }
 
   private async getNoIdentityActor() {

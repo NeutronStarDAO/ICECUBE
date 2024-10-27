@@ -13,8 +13,7 @@ export default class Feed {
   }
 
   private async getActor() {
-    const agent = CommonStore.getAgent()
-    return await getActor2.createActor(idlFactory, this.canisterId.toString(), agent);
+    return await getActor2.createActor(idlFactory, this.canisterId.toString());
   }
 
   private async getNoIdentityActor() {

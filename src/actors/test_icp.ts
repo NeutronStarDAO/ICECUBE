@@ -12,8 +12,7 @@ export default class Test_icp {
   }
 
   private async getActor() {
-    const agent = CommonStore.getAgent()
-    return await getActor2.createActor(idlFactory, cid,agent);
+    return await getActor2.createActor(idlFactory, cid);
   }
 
 

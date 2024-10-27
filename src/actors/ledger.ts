@@ -13,8 +13,7 @@ export default class Ledger {
   }
 
   private async getActor() {
-    const agent = CommonStore.getAgent()
-    return await getActor2.createActor(idlFactory, ledgerCai, agent);
+    return await getActor2.createActor(idlFactory, ledgerCai);
   }
 
   async icpBalance(who: Principal) {

@@ -13,8 +13,7 @@ const indexCai = "qhbym-qaaaa-aaaaa-aaafq-cai"
 export default class IndexCai {
 
   private async getActor() {
-    const agent = CommonStore.getAgent()
-    return await getActor2.createActor(idlFactory, indexCai, agent);
+    return await getActor2.createActor(idlFactory, indexCai);
   }
 
   async getTx(who: Principal): Promise<GetAccountIdentifierTransactionsResponse> {

@@ -7,8 +7,7 @@ const photo_storage_cid = "nwdfs-liaaa-aaaan-qmtjq-cai"
 class storage {
 
   private static async getActor() {
-    const agent = CommonStore.getAgent()
-    return await getActor2.createActor(idlFactory, photo_storage_cid,agent);
+    return await getActor2.createActor(idlFactory, photo_storage_cid);
   }
 
   static async FileRead(file: File | Blob): Promise<unknown> {

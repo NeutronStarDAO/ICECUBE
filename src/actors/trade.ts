@@ -9,8 +9,7 @@ export const tradeCid = "r4b4l-baaaa-aaaan-qzngq-cai"
 export default class Trade {
 
   private async getActor() {
-    const agent = CommonStore.getAgent()
-    return await getActor2.createActor(idlFactory, tradeCid,agent);
+    return await getActor2.createActor(idlFactory, tradeCid);
   }
 
   private async getNoIdentityActor() {

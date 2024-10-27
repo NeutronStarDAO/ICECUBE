@@ -1,4 +1,5 @@
-import {Actor, Agent, HttpAgent} from "@dfinity/agent";
+import {Actor,  HttpAgent} from "@dfinity/agent";
+import {CommonStore} from "./Store";
 
 class UserActor2 {
 
@@ -8,7 +9,8 @@ class UserActor2 {
     });
   }
 
-  public async createActor(idlFactory: any, canisterId: string | any, agent?: Agent) {
+  public async createActor(idlFactory: any, canisterId: string | any) {
+    const agent = CommonStore.getAgent()
     await agent?.fetchRootKey()
     return Actor.createActor(idlFactory, {
       agent,

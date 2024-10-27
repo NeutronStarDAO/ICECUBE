@@ -9,8 +9,7 @@ const userCanisterId = "pf4gs-dqaaa-aaaan-qmtha-cai"
 class User {
 
   private static async getActor() {
-    const agent = CommonStore.getAgent()
-    return await getActor2.createActor(idlFactory, userCanisterId, agent);
+    return await getActor2.createActor(idlFactory, userCanisterId);
   }
 
   private static async getNoIdentityActor() {
