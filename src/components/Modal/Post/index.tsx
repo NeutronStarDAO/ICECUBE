@@ -569,9 +569,9 @@ export const PostModal = ({open, setOpen}: { open: boolean, setOpen: Function })
                     }} previewPosition="none" date={data}
                     onEmojiSelect={(e: any) => setText(text + e.native)}/>
           </div>
-          <span onClick={() => setIsTrade(!isTrade)}>
+          <div className={"trade"} onClick={() => setIsTrade(!isTrade)}>
             <Icon name={isTrade ? "Trade_Click" : "Trade"}/>
-          </span>
+          </div>
         </div>
         <div className={"button_wrap"}>
           {canSend ?

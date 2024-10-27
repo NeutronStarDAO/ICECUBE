@@ -613,7 +613,7 @@ const BottomButton = React.memo(({handleClick, hoverOne, setHoverOne, arg, post,
           onMouseLeave={e => setHoverOne(-1)}>
            <Icon name={"heartbeat"}/>
       </span>
-    <Tooltip title={copyShareLink ? "copied" : "copy share link"}>
+    <Tooltip title={copyShareLink ? "Copied" : "Copy Share Link"}>
       <span onClick={(e) => {
         e.stopPropagation()
         copy()
