@@ -152,6 +152,7 @@ thread_local! {
         )
     );
 
+    // 只针对 user 自己创建的
     // user -> Vec<asset_id>
     static USER_ASSET_MAP: RefCell<StableBTreeMap<Principal, UserAssetIds, Memory>> = RefCell::new(
         StableBTreeMap::init(
@@ -276,24 +277,24 @@ fn get_asset_entries_by_len(start: u64, len: u64) -> Vec<Asset> {
 // (asset_id, balance)
 #[ic_cdk::query]
 fn get_holdings(user: Principal) -> Vec<(u64, Nat)> {
-    let asset_id_vec = USER_ASSET_MAP.with(|map| {
-        map.borrow().get(&user)
-    });
-
-    match asset_id_vec {
-        None => vec![],
-        Some(asset_ids) => {
-            let asset_id_vec = asset_ids.0;
-            let mut entries = Vec::new();
-
-            for asset_id in asset_id_vec {
-                let balance = icrc1_balance_of(asset_id, user);
-                entries.push((asset_id, balance));
+    let mut holdings = Vec::new();
+    for asset_id in 0..ASSET_INDEX.with(|index| index.borrow().get().clone()) {
+        match TOKEN_MAP.with(|map| {
+            map.borrow().get(&asset_id)
+        }) {
+            None => {},
+            Some(token) => {
+                let balance = token.icrc1_balance_of(Account {
+                    owner: user,
+                    subaccount: None
+                });
+                if balance > Nat::from(0u8) {
+                    holdings.push((asset_id, balance));
+                }
             }
-
-            entries
         }
     }
+    holdings
 }
 
 #[ic_cdk::query]
