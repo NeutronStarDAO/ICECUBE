@@ -75,5 +75,4 @@ service : {
   is_posts_be_assets : (vec text) -> (vec opt nat64) query;
   remove : (nat64) -> (Result);
   sell : (nat64, nat) -> (Result);
-  test_update_canister : (principal) -> (bool);
 }

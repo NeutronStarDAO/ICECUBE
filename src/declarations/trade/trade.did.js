@@ -143,7 +143,6 @@ export const idlFactory = ({ IDL }) => {
       ),
     'remove' : IDL.Func([IDL.Nat64], [Result], []),
     'sell' : IDL.Func([IDL.Nat64, IDL.Nat], [Result], []),
-    'test_update_canister' : IDL.Func([IDL.Principal], [IDL.Bool], []),
   });
 };
 export const init = ({ IDL }) => { return []; };

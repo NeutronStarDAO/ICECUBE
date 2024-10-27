@@ -849,7 +849,11 @@ fn mint(asset_id: u64, to: Principal, amount: Nat) -> bool {
     }) {
         None => false,
         Some(mut token) => {
-            token.mint(vec![(to, amount)])
+            assert!(token.mint(vec![(to, amount)]));
+            TOKEN_MAP.with(|map| {
+                map.borrow_mut().insert(asset_id, token)
+            });
+            true
         }
     }
 }
@@ -860,7 +864,11 @@ fn burn(asset_id: u64, from: Principal, amount: Nat) -> bool {
     }) {
         None => false,
         Some(mut token) => {
-            token.burn(from, amount)
+            assert!(token.burn(from, amount));
+            TOKEN_MAP.with(|map| {
+                map.borrow_mut().insert(asset_id, token)
+            });
+            true
         }
     }
 }

@@ -96,7 +96,6 @@ export interface _SERVICE {
   'is_posts_be_assets' : ActorMethod<[Array<string>], Array<[] | [bigint]>>,
   'remove' : ActorMethod<[bigint], Result>,
   'sell' : ActorMethod<[bigint, bigint], Result>,
-  'test_update_canister' : ActorMethod<[Principal], boolean>,
 }
 export declare const idlFactory: IDL.InterfaceFactory;
 export declare const init: (args: { IDL: typeof IDL }) => IDL.Type[];

@@ -130,7 +130,6 @@ fn test_buy() {
         Icrc2approveResult::Err(_) => assert!(false),
         Icrc2approveResult::Ok(_) => assert!(true)
     }
-
         // buy
     let buy_result = pocket_ic::update_candid_as::<(u64, Nat, ), (Result<(), TradeError>, )>(
         &pic, 
@@ -140,6 +139,14 @@ fn test_buy() {
         (asset_id, Nat::from(100_000_000u64), )
     ).unwrap().0;
     assert!(buy_result.is_ok());
+
+    let user_b_balance = pocket_ic::query_candid::<(u64, Principal, ), (Nat, )>(
+        &pic, 
+        trade_info.trade_canister, 
+        "icrc1_balance_of", 
+        (asset_id, user_b, )
+    ).unwrap().0;
+    assert!(user_b_balance == Nat::from(100_000_000u64));
 }
 
 fn test_sell() {
@@ -225,4 +232,12 @@ fn test_sell() {
         (asset_id, Nat::from(100_000_000u64), )
     ).unwrap().0;
     assert!(sell_result.is_ok());
+
+    let user_b_balance = pocket_ic::query_candid::<(u64, Principal, ), (Nat, )>(
+        &pic, 
+        trade_info.trade_canister, 
+        "icrc1_balance_of", 
+        (asset_id, user_b, )
+    ).unwrap().0;
+    assert!(user_b_balance == Nat::from(9 * 100_000_000u64));
 }
