@@ -86,8 +86,9 @@ const Cubes = ({holdings}: { holdings?: [bigint, bigint][] }) => {
     const getPost = async () => {
       if (!holdings || !userFeedCai) return
       const assetIds = holdings.map(e => e[0])
-      const assets = await Promise.all(assetIds.map(e => tradeApi.get_asset(e)))
-      const postIds = assets.map(e => e.post_id)
+      const batchGetRes = await tradeApi.batch_get_asset(assetIds)
+      const assets = batchGetRes.filter(e => !!e[0]).map(e => e[0])
+      const postIds = assets.map(e => e ? e.post_id : "")
       const api = new Feed(userFeedCai)
       const posts = await api.batch_get_post(postIds)
       setPosts(posts)

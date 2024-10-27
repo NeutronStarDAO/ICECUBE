@@ -1,17 +1,17 @@
 import {getActor} from "../utils/Actor";
 import {idlFactory} from "../declarations/trade/index.did";
-import {Asset, Result, Result_1, TradeEvent} from "../declarations/trade";
+import {Account, Asset, Result, Result_1, TradeEvent} from "../declarations/trade";
 import type {Principal} from "@dfinity/principal";
 
-const cid = "r4b4l-baaaa-aaaan-qzngq-cai"
+export const tradeCid = "r4b4l-baaaa-aaaan-qzngq-cai"
 export default class Trade {
 
   private async getActor() {
-    return await getActor.createActor(idlFactory, cid);
+    return await getActor.createActor(idlFactory, tradeCid);
   }
 
   private async getNoIdentityActor() {
-    return await getActor.noIdentityActor(idlFactory, cid);
+    return await getActor.noIdentityActor(idlFactory, tradeCid);
   }
 
   create(postId: string) {
@@ -118,14 +118,12 @@ export default class Trade {
     })
   }
 
-  get_share_supply(assetId: bigint) {
+  icrc1_total_supply(assetId: bigint) {
     return new Promise<bigint>(async (resolve, reject) => {
       try {
         const actor = await this.getNoIdentityActor()
-        const result = await actor.get_share_supply(assetId) as bigint[]
-        if (result.length > 0)
-          resolve(result[0])
-        else resolve(BigInt(0))
+        const result = await actor.icrc1_total_supply(assetId) as bigint
+        resolve(result)
       } catch (e) {
         reject(e)
       }
@@ -163,10 +161,11 @@ export default class Trade {
       try {
         const actor = await this.getActor()
         const result = await actor.buy(assetId, tokenAmount) as Result
+        console.log(result)
         if ("Ok" in result) {
           resolve(true)
         } else {
-          reject(result.Err)
+          reject(Object.keys(result.Err)[0])
         }
       } catch (e) {
         reject(e)
@@ -179,10 +178,11 @@ export default class Trade {
       try {
         const actor = await this.getActor()
         const result = await actor.sell(assetId, tokenAmount) as Result
+        console.log(result)
         if ("Ok" in result) {
           resolve(true)
         } else {
-          reject(result.Err)
+          reject(Object.keys(result.Err)[0])
         }
       } catch (e) {
         reject(e)
@@ -195,6 +195,30 @@ export default class Trade {
       try {
         const actor = await this.getNoIdentityActor()
         const result = await actor.get_holdings(who) as Array<[bigint, bigint]>
+        resolve(result)
+      } catch (e) {
+        reject(e)
+      }
+    })
+  }
+
+  icrc1_balance_of(tokenId: bigint, who: Principal) {
+    return new Promise<number>(async (resolve, reject) => {
+      try {
+        const actor = await this.getNoIdentityActor()
+        const result = await actor.icrc1_balance_of(tokenId, who) as bigint
+        resolve(Number(result))
+      } catch (e) {
+        reject(e)
+      }
+    })
+  }
+
+  batch_get_asset(assetIds: bigint[]) {
+    return new Promise<Array<[] | [Asset]>>(async (resolve, reject) => {
+      try {
+        const actor = await this.getNoIdentityActor()
+        const result = await actor.batch_get_asset(assetIds) as Array<[] | [Asset]>
         resolve(result)
       } catch (e) {
         reject(e)

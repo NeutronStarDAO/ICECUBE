@@ -17,10 +17,10 @@ import {Loading} from "../../components/Loading";
 import {LikeList} from "../../components/LikeList";
 import {Grant} from "../../components/Modal/Grant";
 import {AssetPost} from "../Trade";
-import {tradeApi} from "../../actors/trade";
+import {tradeApi, tradeCid} from "../../actors/trade";
 import {Trade} from "../../components/Modal/Trade";
 import {test_icp_api} from "../../actors/test_icp";
-import {token_api} from "../../actors/token";
+import {Principal} from "@dfinity/principal";
 
 const pageCount = 5
 
@@ -361,7 +361,6 @@ export const Post = ({post, updateFunction, selectedID, profile, setShowLikeList
 
 const TradePrice = React.memo(({assetPost}: { assetPost: AssetPost | postType }) => {
   const [price, setPrice] = useState<number>()
-  const [sellPrice, setSellPrice] = useState<number>()
   const [open, setOpen] = useState(false)
   const [type, setType] = useState<"buy" | "sell">("buy")
   const [amount, setAmount] = useState(0)
@@ -372,8 +371,8 @@ const TradePrice = React.memo(({assetPost}: { assetPost: AssetPost | postType })
   useEffect(() => {
     const getBalance = async () => {
       if (!principal) return
-      if (!("token_id" in assetPost)) return
-      const res = await token_api.icrc1_balance_of(assetPost.token_id, principal)
+      if (!("id" in assetPost)) return
+      const res = await tradeApi.icrc1_balance_of(assetPost.id, principal)
       setBalance(res)
     }
     getBalance()
@@ -388,7 +387,7 @@ const TradePrice = React.memo(({assetPost}: { assetPost: AssetPost | postType })
     const get_sell_price = async () => {
       if (!("id" in assetPost)) return
       const res = await tradeApi.get_sell_price(assetPost.id, BigInt(Math.floor(amount * 1e8)))
-      setIcpAmount(res)
+      setIcpAmount(res / 1e8)
     }
 
     const timer = setTimeout(() => {
@@ -404,12 +403,13 @@ const TradePrice = React.memo(({assetPost}: { assetPost: AssetPost | postType })
 
   }, [amount, assetPost, type]);
 
+  const getPrice = async () => {
+    if (!("id" in assetPost)) return
+    const res = await tradeApi.get_buy_price(assetPost.id, BigInt(1e8))
+    setPrice(res)
+  }
+
   useEffect(() => {
-    const getPrice = async () => {
-      if (!("id" in assetPost)) return
-      const res = await tradeApi.get_buy_price(assetPost.id, BigInt(1e8))
-      setPrice(res)
-    }
     getPrice()
   }, [assetPost]);
 
@@ -418,12 +418,10 @@ const TradePrice = React.memo(({assetPost}: { assetPost: AssetPost | postType })
     try {
       setOpen(false)
       message.loading("pending...")
-      const mint = await test_icp_api.mint(principal, icpAmount + 0.01)
+      const mint = await test_icp_api.mint(principal, icpAmount)
       if (!mint) throw new Error("mint failed")
-      const ap = await test_icp_api.icrc2_approve(icpAmount + 0.01, principal)
+      const ap = await test_icp_api.icrc2_approve(1000, Principal.from(tradeCid))
       if (!ap) throw new Error("approve failed")
-      const balance = await test_icp_api.icrc1_balance_of(principal)
-      console.log(balance)
       if ("id" in assetPost) {
         const res = await tradeApi.buy(assetPost.id, BigInt(amount * 1e8))
         if (res) message.success("success")
@@ -431,23 +429,27 @@ const TradePrice = React.memo(({assetPost}: { assetPost: AssetPost | postType })
       }
     } catch (e: any) {
       console.log(e)
-      message.error(e.message ?? e)
+      message.error(e.message ?? JSON.stringify(e))
     } finally {
-      const balance = await test_icp_api.icrc1_balance_of(principal)
-      console.log(balance)
+      getPrice()
     }
   }
 
   const sellAsset = async () => {
     if (amount * 1e8 > balance) return
     try {
+      setOpen(false)
+      message.loading("pending...")
       if ("id" in assetPost) {
         const res = await tradeApi.sell(assetPost.id, BigInt(amount * 1e8))
         if (res) message.success("success")
         else throw new Error("failed")
       }
     } catch (e: any) {
-      message.error(e.message ?? e)
+      console.log(e)
+      message.error(e.message ?? e.toString())
+    } finally {
+      getPrice()
     }
   }
 

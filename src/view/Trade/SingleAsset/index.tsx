@@ -1,6 +1,5 @@
 import React, {Fragment, useEffect, useState} from "react";
 import {useParams} from "react-router-dom";
-import {Post as PostType} from "../../../declarations/feed/feed";
 import Feed from "../../../actors/feed";
 import {Principal} from "@dfinity/principal";
 import {LikeList} from "../../../components/LikeList";
@@ -30,6 +29,49 @@ export const SingleAsset = React.memo(() => {
     cid: "",
     userId: ""
   })
+  const [recentTrade, setRecentTrade] = useState<TradeEvent[]>()
+  const [profiles, setProfiles] = useState<Profile[]>()
+  const [totalValue, setTotalValue] = useState<number>()
+  const [supply, setSupply] = useState<number>()
+  const [holders, setHolders] = useState<(Profile & { amount: bigint })[]>()
+
+  useEffect(() => {
+    const init = async () => {
+      if (assetId === undefined) {
+        setError(true)
+        return
+      }
+      if (isNaN(+assetId)) {
+        setError(true)
+        return
+      }
+      const id = BigInt(+assetId)
+      tradeApi.get_holders(id).then(e => {
+        const ids = e.map(e => e[0])
+        const amounts = e.map(e => e[1])
+        userApi.batchGetProfile(ids).then(p => {
+          const d = p.map((v, k) => {
+            return {...v, amount: amounts[k]}
+          })
+          setHolders(d)
+        })
+      })
+
+      tradeApi.get_pool_value(id).then(e => {
+        setTotalValue(Number(e))
+      })
+      tradeApi.icrc1_total_supply(id).then(e => {
+        setSupply(Number(e))
+      })
+      const rt = await tradeApi.get_recent_trade(id)
+      setRecentTrade(rt)
+      const pids = rt.map(e => e.sender)
+      const ps = await userApi.batchGetProfile(pids)
+      setProfiles(ps)
+    }
+    init()
+  }, []);
+
 
   useEffect(() => {
     const init = async () => {
@@ -93,49 +135,20 @@ export const SingleAsset = React.memo(() => {
                     post={post} setShowLikeList={setShowLikeList}/> :
         error ? <Empty style={{width: "100%"}}/> :
           <Loading isShow={true} style={{width: "100%"}}/>}
-      <AssetInfo id={BigInt(0)}/>
+      {!error && <AssetInfo holders={holders} profiles={profiles} totalValue={totalValue} recentTrade={recentTrade}
+                            supply={supply}/>}
     </div>
   </>
 })
 
 
-const AssetInfo = React.memo(({id}: { id: bigint }) => {
+const AssetInfo = React.memo((props: {
+  recentTrade?: TradeEvent[],
+  profiles?: Profile[], holders?: (Profile & { amount: bigint })[], totalValue?: number, supply?: number
+}) => {
   const [clickOne, setClickOne] = useState<number>(0)
-  const [recentTrade, setRecentTrade] = useState<TradeEvent[]>()
-  const [profiles, setProfiles] = useState<Profile[]>()
-  const [totalValue, setTotalValue] = useState<number>()
-  const [supply, setSupply] = useState<number>()
-  const [holders, setHolders] = useState<(Profile & { amount: bigint })[]>()
 
-
-  useEffect(() => {
-    const init = async () => {
-
-      tradeApi.get_holders(id).then(e => {
-        const ids = e.map(e => e[0])
-        const amounts = e.map(e => e[1])
-        userApi.batchGetProfile(ids).then(p => {
-          const d = p.map((v, k) => {
-            return {...v, amount: amounts[k]}
-          })
-          setHolders(d)
-        })
-      })
-
-      tradeApi.get_pool_value(id).then(e => {
-        setTotalValue(Number(e))
-      })
-      tradeApi.get_share_supply(id).then(e => {
-        setSupply(Number(e))
-      })
-      const rt = await tradeApi.get_recent_trade(id)
-      setRecentTrade(rt)
-      const pids = rt.map(e => e.sender)
-      const ps = await userApi.batchGetProfile(pids)
-      setProfiles(ps)
-    }
-    init()
-  }, []);
+  const {recentTrade, profiles, holders, totalValue, supply} = props
 
   return <div className={"asset_info"}>
     <div className={"asset_info_head"}>
@@ -176,9 +189,10 @@ const Holders = React.memo(({holders}: { holders?: (Profile & { amount: bigint }
 const RecentTrade = React.memo(({recentTrade, profiles}: { recentTrade?: TradeEvent[], profiles?: Profile[] }) => {
   return <Fragment>
     {recentTrade ? recentTrade.map((v, k) => {
+      const type = Object.keys(v.trade_type)[0]
       return <div className={"item"} key={k}>
         <span>{profiles ? profiles[k].handle : "-/-"}</span>
-        <span className={"buy"}>{Object.keys(v.trade_type)[0]}</span>
+        <span className={type}>{Object.keys(v.trade_type)[0]}</span>
         <span>{(Number(v.token_amount) / 1e8).toFixed(2)} cube for {Number(v.icp_amount) / 1e8} ICP</span>
       </div>
     }) : <Loading isShow={true} style={{width: "100%"}}/>}

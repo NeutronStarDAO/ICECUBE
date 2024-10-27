@@ -1,12 +1,17 @@
 export const idlFactory = ({ IDL }) => {
-  const Error = IDL.Variant({
+  const Asset = IDL.Record({
+    'id' : IDL.Nat64,
+    'creator' : IDL.Principal,
+    'post_id' : IDL.Text,
+    'time' : IDL.Nat64,
+  });
+  const TradeError = IDL.Variant({
     'GenericError' : IDL.Record({
       'message' : IDL.Text,
       'error_code' : IDL.Nat,
     }),
     'TemporarilyUnavailable' : IDL.Null,
     'InsufficientAllowance' : IDL.Record({ 'allowance' : IDL.Nat }),
-    'CreateTokenError' : IDL.Null,
     'BadBurn' : IDL.Record({ 'min_burn_amount' : IDL.Nat }),
     'Duplicate' : IDL.Record({ 'duplicate_of' : IDL.Nat }),
     'AssetNotExist' : IDL.Null,
@@ -18,18 +23,8 @@ export const idlFactory = ({ IDL }) => {
     'PostNotExistInBucket' : IDL.Null,
     'InsufficientFunds' : IDL.Record({ 'balance' : IDL.Nat }),
   });
-  const Result = IDL.Variant({ 'Ok' : IDL.Null, 'Err' : Error });
-  const Result_1 = IDL.Variant({
-    'Ok' : IDL.Tuple(IDL.Nat64, IDL.Nat64),
-    'Err' : Error,
-  });
-  const Asset = IDL.Record({
-    'id' : IDL.Nat64,
-    'creator' : IDL.Principal,
-    'post_id' : IDL.Text,
-    'token_id' : IDL.Nat64,
-    'time' : IDL.Nat64,
-  });
+  const Result = IDL.Variant({ 'Ok' : IDL.Null, 'Err' : TradeError });
+  const Result_1 = IDL.Variant({ 'Ok' : IDL.Nat64, 'Err' : TradeError });
   const CreateEvent = IDL.Record({
     'creator' : IDL.Principal,
     'post_id' : IDL.Text,
@@ -52,7 +47,26 @@ export const idlFactory = ({ IDL }) => {
     'sender' : IDL.Principal,
     'asset_id' : IDL.Nat64,
   });
+  const Value = IDL.Variant({
+    'Int' : IDL.Int,
+    'Nat' : IDL.Nat,
+    'Blob' : IDL.Vec(IDL.Nat8),
+    'Text' : IDL.Text,
+  });
+  const Account = IDL.Record({
+    'owner' : IDL.Principal,
+    'subaccount' : IDL.Opt(IDL.Vec(IDL.Nat8)),
+  });
+  const Icrc1supportedStandardsResult = IDL.Record({
+    'url' : IDL.Text,
+    'name' : IDL.Text,
+  });
   return IDL.Service({
+    'batch_get_asset' : IDL.Func(
+      [IDL.Vec(IDL.Nat64)],
+      [IDL.Vec(IDL.Opt(Asset))],
+      ['query'],
+    ),
     'buy' : IDL.Func([IDL.Nat64, IDL.Nat], [Result], []),
     'create' : IDL.Func([IDL.Text], [Result_1], []),
     'get_asset' : IDL.Func([IDL.Nat64], [IDL.Opt(Asset)], ['query']),
@@ -63,11 +77,6 @@ export const idlFactory = ({ IDL }) => {
       ['query'],
     ),
     'get_asset_index' : IDL.Func([], [IDL.Nat64], ['query']),
-    'get_asset_to_token' : IDL.Func(
-      [IDL.Nat64],
-      [IDL.Opt(IDL.Nat64)],
-      ['query'],
-    ),
     'get_buy_price' : IDL.Func([IDL.Nat64, IDL.Nat], [IDL.Nat], ['query']),
     'get_buy_price_after_fee' : IDL.Func(
       [IDL.Nat64, IDL.Nat],
@@ -80,12 +89,12 @@ export const idlFactory = ({ IDL }) => {
     'get_holders' : IDL.Func(
       [IDL.Nat64],
       [IDL.Vec(IDL.Tuple(IDL.Principal, IDL.Nat))],
-      ['composite_query'],
+      ['query'],
     ),
     'get_holdings' : IDL.Func(
       [IDL.Principal],
       [IDL.Vec(IDL.Tuple(IDL.Nat64, IDL.Nat))],
-      ['composite_query'],
+      ['query'],
     ),
     'get_pool_value' : IDL.Func([IDL.Nat64], [IDL.Opt(IDL.Nat)], ['query']),
     'get_recent_trade' : IDL.Func(
@@ -100,8 +109,32 @@ export const idlFactory = ({ IDL }) => {
       [IDL.Nat],
       ['query'],
     ),
-    'get_share_supply' : IDL.Func([IDL.Nat64], [IDL.Opt(IDL.Nat)], ['query']),
     'get_trade_events' : IDL.Func([], [IDL.Vec(TradeEvent)], ['query']),
+    'icrc1_balance_of' : IDL.Func(
+      [IDL.Nat64, IDL.Principal],
+      [IDL.Nat],
+      ['query'],
+    ),
+    'icrc1_decimals' : IDL.Func([IDL.Nat64], [IDL.Nat8], ['query']),
+    'icrc1_fee' : IDL.Func([IDL.Nat64], [IDL.Nat], ['query']),
+    'icrc1_metadata' : IDL.Func(
+      [IDL.Nat64],
+      [IDL.Vec(IDL.Tuple(IDL.Text, Value))],
+      ['query'],
+    ),
+    'icrc1_minting_account' : IDL.Func(
+      [IDL.Nat64],
+      [IDL.Opt(Account)],
+      ['query'],
+    ),
+    'icrc1_name' : IDL.Func([IDL.Nat64], [IDL.Text], ['query']),
+    'icrc1_supported_standards' : IDL.Func(
+      [IDL.Nat64],
+      [IDL.Vec(Icrc1supportedStandardsResult)],
+      ['query'],
+    ),
+    'icrc1_symbol' : IDL.Func([IDL.Nat64], [IDL.Text], ['query']),
+    'icrc1_total_supply' : IDL.Func([IDL.Nat64], [IDL.Nat], ['query']),
     'is_post_be_asset' : IDL.Func([IDL.Text], [IDL.Opt(IDL.Nat64)], ['query']),
     'is_posts_be_assets' : IDL.Func(
       [IDL.Vec(IDL.Text)],
@@ -110,6 +143,7 @@ export const idlFactory = ({ IDL }) => {
     ),
     'remove' : IDL.Func([IDL.Nat64], [Result], []),
     'sell' : IDL.Func([IDL.Nat64, IDL.Nat], [Result], []),
+    'test_update_canister' : IDL.Func([IDL.Principal], [IDL.Bool], []),
   });
 };
 export const init = ({ IDL }) => { return []; };
