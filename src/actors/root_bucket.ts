@@ -1,16 +1,17 @@
 import {idlFactory} from "../declarations/root_bucket/root_bucket.did.js"
-import {getActor} from "../utils/Actor";
 import {Post} from "../declarations/root_bucket/root_bucket";
+import {getActor2} from "../utils/Actor2";
 
 const root_bucket = "pc5ag-oiaaa-aaaan-qmthq-cai"
 
 class rootPost {
-  private static async getActor() {
-    return await getActor.createActor(idlFactory, root_bucket);
+
+  static async getNoIdentityActor() {
+    return await getActor2.noIdentityActor(idlFactory, root_bucket);
   }
 
   async get_buckets_latest_feed_from_start(start: number, count: number) {
-    const actor = await rootPost.getActor()
+    const actor = await rootPost.getNoIdentityActor()
     try {
       return await actor.get_buckets_latest_feed_from_start(BigInt(start), BigInt(count)) as Post[]
     } catch (e) {

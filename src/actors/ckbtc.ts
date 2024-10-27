@@ -1,19 +1,24 @@
-import {getActor} from "../utils/Actor";
 import {idlFactory} from "../declarations/ckBTC/ckbtc.did";
 import {Principal} from "@dfinity/principal";
 import {Account, Result, TransferArg} from "../declarations/ckBTC/ckbtc";
-import {toBigInt} from "ethers";
+import {CommonStore} from "../utils/Store";
+import {getActor2} from "../utils/Actor2";
 
 
 const indexCai = "mxzaz-hqaaa-aaaar-qaada-cai"
 export default class CkBTC {
 
   private async getActor() {
-    return await getActor.createActor(idlFactory, indexCai);
+    const agent = CommonStore.getAgent()
+    return await getActor2.createActor(idlFactory, indexCai, agent);
+  }
+
+  private async getNoIdentityActor() {
+    return await getActor2.noIdentityActor(idlFactory, indexCai);
   }
 
   async ckBTCBalance(who: Principal) {
-    const actor = await this.getActor()
+    const actor = await this.getNoIdentityActor()
     try {
       const account: Account = {
         owner: who,
@@ -25,7 +30,6 @@ export default class CkBTC {
       console.log("ckBTCBalance error", e)
       throw e
     }
-
   }
 
   async transferCkBTC(to: Principal, amount: bigint): Promise<bigint> {

@@ -28,7 +28,7 @@ export const Trade = () => {
   const loader = useRef(null)
 
   const getData = React.useCallback(async () => {
-    if (!userFeedCai) return []
+    if (!userFeedCai) return setData([])
     const assets = await tradeApi.get_asset_entries_by_len(page * pageCount, pageCount)
     const postIds = assets.map(e => e.post_id)
     const api = new Feed(userFeedCai)

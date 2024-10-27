@@ -1,19 +1,20 @@
 import {Principal} from "@dfinity/principal";
-import {getActor} from "../utils/Actor";
 import {idlFactory} from "../declarations/Index/index.did";
 import {
   GetAccountIdentifierTransactionsResponse,
   GetAccountIdentifierTransactionsResult,
   GetAccountTransactionsArgs
 } from "../declarations/Index";
+import {getActor2} from "../utils/Actor2";
+import {CommonStore} from "../utils/Store";
 
 
 const indexCai = "qhbym-qaaaa-aaaaa-aaafq-cai"
 export default class IndexCai {
 
-
   private async getActor() {
-    return await getActor.createActor(idlFactory, indexCai);
+    const agent = CommonStore.getAgent()
+    return await getActor2.createActor(idlFactory, indexCai, agent);
   }
 
   async getTx(who: Principal): Promise<GetAccountIdentifierTransactionsResponse> {

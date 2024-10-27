@@ -1,13 +1,16 @@
 import {getActor} from "../utils/Actor";
 import {idlFactory} from "../declarations/trade/index.did";
-import {Account, Asset, Result, Result_1, TradeEvent} from "../declarations/trade";
+import {Asset, Result, Result_1, TradeEvent} from "../declarations/trade";
 import type {Principal} from "@dfinity/principal";
+import {CommonStore} from "../utils/Store";
+import {getActor2} from "../utils/Actor2";
 
 export const tradeCid = "r4b4l-baaaa-aaaan-qzngq-cai"
 export default class Trade {
 
   private async getActor() {
-    return await getActor.createActor(idlFactory, tradeCid);
+    const agent = CommonStore.getAgent()
+    return await getActor2.createActor(idlFactory, tradeCid,agent);
   }
 
   private async getNoIdentityActor() {

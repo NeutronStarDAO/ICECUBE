@@ -1,12 +1,12 @@
-import {getActor} from "../utils/Actor";
 import {idlFactory} from "../declarations/data_analysis/data_analysis.did";
 import {Post} from "../declarations/feed/feed";
+import {getActor2} from "../utils/Actor2";
 
 const cid = "tgj3t-faaaa-aaaan-quqfa-cai"
 export default class DataAnalysis {
 
   private async getNoIdentityActor() {
-    return await getActor.noIdentityActor(idlFactory, cid);
+    return await getActor2.noIdentityActor(idlFactory, cid);
   }
 
   receive_post(tags: string[], postId: string) {

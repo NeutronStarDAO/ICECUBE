@@ -1,14 +1,20 @@
 import {idlFactory} from "../declarations/user/user.did.js";
-import {getActor} from "../utils/Actor";
 import {Profile} from "../declarations/user/user";
 import {Principal} from "@dfinity/principal";
+import {CommonStore} from "../utils/Store";
+import {getActor2} from "../utils/Actor2";
 
 const userCanisterId = "pf4gs-dqaaa-aaaan-qmtha-cai"
 
 class User {
 
   private static async getActor() {
-    return await getActor.createActor(idlFactory, userCanisterId);
+    const agent = CommonStore.getAgent()
+    return await getActor2.createActor(idlFactory, userCanisterId, agent);
+  }
+
+  private static async getNoIdentityActor() {
+    return await getActor2.noIdentityActor(idlFactory, userCanisterId);
   }
 
   async createProfile(newProfile: Profile) {
@@ -34,7 +40,7 @@ class User {
   }
 
   async getProfile(who: Principal): Promise<Profile | undefined> {
-    const actor = await User.getActor()
+    const actor = await User.getNoIdentityActor()
     try {
       const res = await actor.get_profile(who) as [Profile]
       return res[0]
@@ -45,7 +51,7 @@ class User {
   }
 
   async batchGetProfile(who: Principal[]): Promise<Profile[]> {
-    const actor = await User.getActor();
+    const actor = await User.getNoIdentityActor();
     try {
       return await actor.batch_get_profile(who) as Profile[]
     } catch (e) {
@@ -55,7 +61,7 @@ class User {
   }
 
   async getFollowerNumber(who: Principal): Promise<number> {
-    const actor = await User.getActor()
+    const actor = await User.getNoIdentityActor()
     try {
       const res = await actor.get_follower_number(who) as bigint
       return Number(res)
@@ -66,7 +72,7 @@ class User {
   }
 
   async getFollowingNumber(who: Principal): Promise<number> {
-    const actor = await User.getActor()
+    const actor = await User.getNoIdentityActor()
     try {
       const res = await actor.get_following_number(who) as bigint
       return Number(res)
@@ -77,7 +83,7 @@ class User {
   }
 
   async getFollowingList(who: Principal): Promise<Principal[]> {
-    const actor = await User.getActor()
+    const actor = await User.getNoIdentityActor()
     try {
       return await actor.get_following_list(who) as Principal[]
     } catch (e) {
@@ -87,7 +93,7 @@ class User {
   }
 
   async getFollowerList(who: Principal): Promise<Principal[]> {
-    const actor = await User.getActor()
+    const actor = await User.getNoIdentityActor()
     try {
       return await actor.get_followers_list(who) as Principal[]
     } catch (e) {
@@ -117,7 +123,7 @@ class User {
   }
 
   async is_handle_available(handle: string) {
-    const actor = await User.getActor()
+    const actor = await User.getNoIdentityActor()
     try {
       return await actor.is_handle_available(handle) as boolean
     } catch (e) {
@@ -127,7 +133,7 @@ class User {
   }
 
   async isFollowed(A: Principal, B: Principal) {//判断 A 是否是 B的粉丝
-    const actor = await User.getActor()
+    const actor = await User.getNoIdentityActor()
     try {
       return await actor.is_followed(A, B) as boolean
     } catch (e) {
@@ -158,9 +164,10 @@ class User {
       }
     })
   }
+
   is_black_follow_list(A: Principal, B: Principal) {//B 是否在A的黑名单中
     return new Promise<boolean>(async (resolve, reject) => {
-      const actor = await User.getActor()
+      const actor = await User.getNoIdentityActor()
       try {
         const res = await actor.is_black_follow_list(A, B) as boolean
         resolve(res)
@@ -173,14 +180,14 @@ class User {
 
   cancle_black_list(who: Principal) {
     return new Promise(async (resolve, reject) => {
-        const actor = await User.getActor()
-        try {
-            const res = await actor.cancle_black_list(who) as boolean
-            resolve(res)
-        } catch (e) {
-            console.log("cancle_black_list", e)
-            reject(e)
-        }
+      const actor = await User.getActor()
+      try {
+        const res = await actor.cancle_black_list(who) as boolean
+        resolve(res)
+      } catch (e) {
+        console.log("cancle_black_list", e)
+        reject(e)
+      }
     })
   }
 }

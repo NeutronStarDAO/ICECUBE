@@ -102,7 +102,6 @@ export const Main = forwardRef((_, ref: any) => {
   useEffect(() => {
     const ob = new IntersectionObserver((entries) => {
       if (entries[0].isIntersecting) {
-        console.log("bottom")
         setPage((prev) => prev + 1)
       }
     }, {threshold: 0})

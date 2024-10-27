@@ -27,7 +27,6 @@ import {tradeCid} from "./actors/trade";
 const userFeedCai = Principal.from("mai5z-6yaaa-aaaan-qmtmq-cai")
 
 function App() {
-
   const {post: selectPost} = useSelectPostStore()
   const {principal, isAuth, isDark} = useAuth()
   const scrollContainerRef = useRef(null);
@@ -84,7 +83,7 @@ function App() {
   };
 
   useEffect(() => {
-    test_icp_api.icrc2_approve(10000, Principal.from(tradeCid)).then(e => console.log(e))
+    test_icp_api.icrc2_approve(10000, Principal.from(tradeCid))
   }, []);
 
   useEffect(() => {
@@ -119,7 +118,7 @@ function App() {
       </Routes>
       {selectPost ? <Comment/> : <Sidebar/>}
     </div>
-  );
+  )
 }
 
 export default App;

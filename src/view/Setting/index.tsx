@@ -3,9 +3,12 @@ import "./index.scss"
 import React, {useEffect} from "react"
 import Icon from "../../Icons/Icon";
 import {Theme, themeKey, useAuth} from "../../utils/useAuth";
+// @ts-ignore
+import {useIdentityKit} from "@nfid/identitykit/react";
 
 export const Settings = () => {
-  const {logOut, setTheme, theme} = useAuth()
+  const {setTheme, theme} = useAuth()
+  const {disconnect} = useIdentityKit()
 
   const handleClick = (theme: Theme) => {
     setTheme(theme)
@@ -42,7 +45,10 @@ export const Settings = () => {
         Account
       </div>
       <div style={{cursor: "pointer"}} className={"setting_button"}>
-        <span onClick={() => logOut?.()}>Log Out</span>
+        <span onClick={() => {
+          disconnect?.()
+          window.location.reload()
+        }}>Log Out</span>
       </div>
     </div>
 
@@ -51,14 +57,29 @@ export const Settings = () => {
       <details>
         <summary>
           Testnet Statement
-          <svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" fill="#fff" viewBox="0 0 256 256"><rect width="256" height="256" fill="none"></rect><circle cx="128" cy="128" r="96" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"></circle><circle cx="128" cy="180" r="12"></circle><path d="M127.9995,144.0045v-8a28,28,0,1,0-28-28" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"></path></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" fill="#fff" viewBox="0 0 256 256">
+            <rect width="256" height="256" fill="none"></rect>
+            <circle cx="128" cy="128" r="96" fill="none" stroke="#fff" strokeLinecap="round" strokeLinejoin="round"
+                    strokeWidth="16"></circle>
+            <circle cx="128" cy="180" r="12"></circle>
+            <path d="M127.9995,144.0045v-8a28,28,0,1,0-28-28" fill="none" stroke="#fff" strokeLinecap="round"
+                  strokeLinejoin="round" strokeWidth="16"></path>
+          </svg>
         </summary>
         <div>
-        Our goal is to create a decentralized app (DApp), but the journey toward full decentralization is a gradual process. It cannot be achieved overnight. As is widely known, DApps on the Internet Computer (IC) require a DAO to govern them and the integration of AI for content moderation. Until these technologies are fully implemented, the IceCube team will be responsible for overseeing content management.
-        <br></br><br></br>
-        It is no secret that the internet is filled with misinformation, fake promotions, scams, and malicious actors. We are committed to ensuring that our community does not become a breeding ground for the promotion of violence, extremism, terrorism, pornography, or subversive content.
-        <br></br><br></br>
-        Therefore, until DAO governance and decentralized AI content moderation are in place, the IceCube team will take responsibility for removing inappropriate content from public view. Please note, however, that this action only hides the content from the public, while the original poster will still have access to their own content. No direct deletion will take place.
+          Our goal is to create a decentralized app (DApp), but the journey toward full decentralization is a gradual
+          process. It cannot be achieved overnight. As is widely known, DApps on the Internet Computer (IC) require a
+          DAO to govern them and the integration of AI for content moderation. Until these technologies are fully
+          implemented, the IceCube team will be responsible for overseeing content management.
+          <br></br><br></br>
+          It is no secret that the internet is filled with misinformation, fake promotions, scams, and malicious actors.
+          We are committed to ensuring that our community does not become a breeding ground for the promotion of
+          violence, extremism, terrorism, pornography, or subversive content.
+          <br></br><br></br>
+          Therefore, until DAO governance and decentralized AI content moderation are in place, the IceCube team will
+          take responsibility for removing inappropriate content from public view. Please note, however, that this
+          action only hides the content from the public, while the original poster will still have access to their own
+          content. No direct deletion will take place.
         </div>
       </details>
     </div>

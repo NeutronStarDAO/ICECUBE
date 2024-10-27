@@ -18,6 +18,7 @@ export const profileSlice = createSlice({
 const {update} = profileSlice.actions
 const profile = (state: RootState) => state.profile
 export const updateProfile = async (result: Profile) => {
+  // @ts-ignore
   const store = await (await import("../store")).default
   store.dispatch(update(result))
 }

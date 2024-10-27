@@ -14,6 +14,13 @@ import Feed from "../../actors/feed";
 import {useNavigate} from "react-router-dom";
 
 export const Wallet = () => {
+  const {isAuth} = useAuth()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    !isAuth && navigate("/explore")
+  }, [isAuth, navigate])
+
   return <div className={"wallet_main"}>
     <div className={"title"}>Wallet</div>
     <Balance/>

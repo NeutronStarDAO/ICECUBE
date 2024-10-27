@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import "./index.scss";
 import Icon, {Name} from "../../Icons/Icon";
 import {useLocation, useNavigate} from "react-router-dom";
@@ -6,12 +6,17 @@ import {useAuth} from "../../utils/useAuth";
 import {Tooltip} from "antd";
 import {PostModal} from "../Modal/Post";
 import {useProfileStore} from "../../redux";
+import {
+  ConnectWallet,
+  ConnectWalletButtonProps
+// @ts-ignore
+} from "@nfid/identitykit/react"
 
-const menu = ["Home", "Explore","Trade", "Wallet", "Settings"]
+const menu = ["Home", "Explore", "Trade", "Wallet", "Settings"]
 export const Side = ({scrollToTop}: { scrollToTop: Function }) => {
   const navigate = useNavigate()
   const location = useLocation()
-  const {logIn, isAuth, isDark} = useAuth()
+  const {isDark, isAuth} = useAuth()
   const [open, setOpen] = useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
@@ -31,20 +36,23 @@ export const Side = ({scrollToTop}: { scrollToTop: Function }) => {
         <div className={"side_items"}>
           {menu.map((v, k) => {
             const isClick = location.pathname === `/${v.toLowerCase()}`
+            const notAllow = (v === "Home" || v === "Wallet") && !isAuth
             return <div style={{
-              cursor: v === "Home" && !isAuth ? "no-drop" : "pointer",
+              cursor: notAllow ? "no-drop" : "pointer",
               background: isClick ? "#B0CCFF" : "",
               boxShadow: isClick ? "rgba(0, 0, 0, 0.15) 5px 5px 10px 3px" : ""
             }}
                         onClick={() => {
-                          if (!(v === "Home" && !isAuth))
+                          if (!notAllow)
                             navigate(`/${v.toLowerCase()}`);
                           scrollToTop()
                           closeSidebar()
                         }} key={k} className="item">
-              <Icon name={isClick ? `${v}_Click` as Name : v as Name}/>&nbsp;{v === "Home" ?
-              <Tooltip title={v === "Home" && !isAuth ? "Please login first" : ""}>{v}</Tooltip> :
-              <div className="sider_btn_word">{v}</div>}
+              <Icon name={isClick ? `${v}_Click` as Name : v as Name}/> &nbsp;
+              {v === "Home" || v === "Wallet" ?
+                <Tooltip title={notAllow ? "Please login first" : ""}>{v}</Tooltip> :
+                <div className="sider_btn_word">{v}</div>
+              }
             </div>
           })}
           <PostModal setOpen={setOpen} open={open}/>
@@ -62,19 +70,23 @@ export const Side = ({scrollToTop}: { scrollToTop: Function }) => {
       </div>
       {
         isAuth ? <UserInfo closeSidebar={closeSidebar}/>
-          : <div className="side_bottom" onClick={() => logIn?.()}>
-            👋 Hi, login
-          </div>
+          : <ConnectWallet connectButtonComponent={ConnectWalletButton}/>
+
       }
     </div>
-
     <div className="toggle_button" onClick={toggleSidebar}>
       {isSidebarOpen ? "😍" : "☰"}
     </div>
-
     <div className={`overlay ${isSidebarOpen ? "active" : ""}`} onClick={closeSidebar}></div>
-
   </>
+}
+
+function ConnectWalletButton({onClick, ...props}: ConnectWalletButtonProps) {
+  return (
+    <div className="side_bottom" onClick={onClick as any}>
+      👋 Hi, login
+    </div>
+  )
 }
 
 const Logo = () => {

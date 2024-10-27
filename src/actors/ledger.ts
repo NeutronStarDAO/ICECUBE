@@ -1,19 +1,24 @@
 import {Principal} from "@dfinity/principal";
-import {getActor} from "../utils/Actor";
-import {Account, AccountBalanceArgs, Result, SendArgs, Tokens, TransferArg} from "../declarations/Ledger/ledger";
+import {Account, Result, SendArgs, TransferArg} from "../declarations/Ledger/ledger";
 import {idlFactory} from "../declarations/Ledger/ledger.did";
+import {getActor2} from "../utils/Actor2";
+import {CommonStore} from "../utils/Store";
 
 
 const ledgerCai = "ryjl3-tyaaa-aaaaa-aaaba-cai"
 export default class Ledger {
 
+  private async getNoIdentityActor() {
+    return await getActor2.noIdentityActor(idlFactory, ledgerCai);
+  }
 
   private async getActor() {
-    return await getActor.createActor(idlFactory, ledgerCai);
+    const agent = CommonStore.getAgent()
+    return await getActor2.createActor(idlFactory, ledgerCai, agent);
   }
 
   async icpBalance(who: Principal) {
-    const actor = await this.getActor()
+    const actor = await this.getNoIdentityActor()
     try {
       const account: Account = {
         owner: who,

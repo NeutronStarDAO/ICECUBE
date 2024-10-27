@@ -27,6 +27,7 @@ export const selectPostSlice = createSlice({
 const {update} = selectPostSlice.actions
 const selectPost = (state: RootState) => state.selectPost
 export const updateSelectPost = async (result: init) => {
+  // @ts-ignore
   const store = await (await import("../store")).default
   store.dispatch(update(result))
 }

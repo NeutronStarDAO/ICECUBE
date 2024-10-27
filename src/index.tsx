@@ -10,6 +10,11 @@ import store from "./redux/store";
 import gsap from 'gsap';
 import {useGSAP} from '@gsap/react';
 import {ProvideAuth} from "./utils/useAuth";
+import "@nfid/identitykit/react/styles.css"
+import {IdentityKitAuthType, InternetIdentity, NFIDW} from "@nfid/identitykit";
+
+// @ts-ignore
+import {IdentityKitProvider, IdentityKitTheme} from '@nfid/identitykit/react';
 
 gsap.registerPlugin(useGSAP);
 fontResize()
@@ -19,11 +24,24 @@ const root = ReactDOM.createRoot(
 root.render(
   <React.StrictMode>
     <BrowserRouter>
-      <ProvideAuth>
-        <Provider store={store}>
+      <Provider store={store}>
+        <IdentityKitProvider
+          authType={IdentityKitAuthType.DELEGATION}
+          theme={IdentityKitTheme.LIGHT}
+          signerClientOptions={{
+            idleOptions: {
+              idleTimeout: 1000 * 60 * 30, // set to 30 minutes
+              disableDefaultIdleCallback: true // disable the default reload behavior
+            }
+          }}
+          signers={[NFIDW, InternetIdentity]}
+          featuredSigner={InternetIdentity}
+        >
+          <ProvideAuth>
             <App/>
-        </Provider>
-      </ProvideAuth>
+          </ProvideAuth>
+        </IdentityKitProvider>
+      </Provider>
     </BrowserRouter>
   </React.StrictMode>
 );

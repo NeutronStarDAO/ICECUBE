@@ -1,12 +1,14 @@
-import {getActor} from "../utils/Actor";
 import {idlFactory} from "../declarations/photo_storage/photo_storage.did.js";
+import {CommonStore} from "../utils/Store";
+import {getActor2} from "../utils/Actor2";
 
 const photo_storage_cid = "nwdfs-liaaa-aaaan-qmtjq-cai"
 
 class storage {
 
   private static async getActor() {
-    return await getActor.createActor(idlFactory, photo_storage_cid);
+    const agent = CommonStore.getAgent()
+    return await getActor2.createActor(idlFactory, photo_storage_cid,agent);
   }
 
   static async FileRead(file: File | Blob): Promise<unknown> {
