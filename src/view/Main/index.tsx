@@ -353,13 +353,16 @@ export const Post = ({post, updateFunction, selectedID, profile, setShowLikeList
                     setHoverOne={setHoverOne} showSending={showSending}/>
       <CommentInput setOpen={setOpen} open={open} replyContent={replyContent} setReplyContent={setReplyContent}
                     callBack={sendReply}/>
-      {isTrade && <TradePrice assetPost={post}/>}
+      {isTrade && <TradePrice assetPost={post} updateFunction={updateFunction}/>}
     </div>
   </>
 }
 
 
-const TradePrice = React.memo(({assetPost}: { assetPost: AssetPost | postType }) => {
+const TradePrice = React.memo(({assetPost, updateFunction}: {
+  assetPost: AssetPost | postType,
+  updateFunction?: Function
+}) => {
   const [price, setPrice] = useState<number>()
   const [open, setOpen] = useState(false)
   const [type, setType] = useState<"buy" | "sell">("buy")
@@ -420,8 +423,6 @@ const TradePrice = React.memo(({assetPost}: { assetPost: AssetPost | postType })
       message.loading("pending...")
       const mint = await test_icp_api.mint(principal, icpAmount)
       if (!mint) throw new Error("mint failed")
-      const ap = await test_icp_api.icrc2_approve(1000, Principal.from(tradeCid))
-      if (!ap) throw new Error("approve failed")
       if ("id" in assetPost) {
         const res = await tradeApi.buy(assetPost.id, BigInt(amount * 1e8))
         if (res) message.success("success")
@@ -432,6 +433,7 @@ const TradePrice = React.memo(({assetPost}: { assetPost: AssetPost | postType })
       message.error(e.message ?? JSON.stringify(e))
     } finally {
       getPrice()
+      updateFunction?.()
     }
   }
 
@@ -450,6 +452,7 @@ const TradePrice = React.memo(({assetPost}: { assetPost: AssetPost | postType })
       message.error(e.message ?? e.toString())
     } finally {
       getPrice()
+      updateFunction?.()
     }
   }
 

@@ -35,40 +35,41 @@ export const SingleAsset = React.memo(() => {
   const [supply, setSupply] = useState<number>()
   const [holders, setHolders] = useState<(Profile & { amount: bigint })[]>()
 
-  useEffect(() => {
-    const init = async () => {
-      if (assetId === undefined) {
-        setError(true)
-        return
-      }
-      if (isNaN(+assetId)) {
-        setError(true)
-        return
-      }
-      const id = BigInt(+assetId)
-      tradeApi.get_holders(id).then(e => {
-        const ids = e.map(e => e[0])
-        const amounts = e.map(e => e[1])
-        userApi.batchGetProfile(ids).then(p => {
-          const d = p.map((v, k) => {
-            return {...v, amount: amounts[k]}
-          })
-          setHolders(d)
-        })
-      })
-
-      tradeApi.get_pool_value(id).then(e => {
-        setTotalValue(Number(e))
-      })
-      tradeApi.icrc1_total_supply(id).then(e => {
-        setSupply(Number(e))
-      })
-      const rt = await tradeApi.get_recent_trade(id)
-      setRecentTrade(rt)
-      const pids = rt.map(e => e.sender)
-      const ps = await userApi.batchGetProfile(pids)
-      setProfiles(ps)
+  const init = async () => {
+    if (assetId === undefined) {
+      setError(true)
+      return
     }
+    if (isNaN(+assetId)) {
+      setError(true)
+      return
+    }
+    const id = BigInt(+assetId)
+    tradeApi.get_holders(id).then(e => {
+      const ids = e.map(e => e[0])
+      const amounts = e.map(e => e[1])
+      userApi.batchGetProfile(ids).then(p => {
+        const d = p.map((v, k) => {
+          return {...v, amount: amounts[k]}
+        })
+        setHolders(d)
+      })
+    })
+
+    tradeApi.get_pool_value(id).then(e => {
+      setTotalValue(Number(e))
+    })
+    tradeApi.icrc1_total_supply(id).then(e => {
+      setSupply(Number(e))
+    })
+    const rt = await tradeApi.get_recent_trade(id)
+    setRecentTrade(rt)
+    const pids = rt.map(e => e.sender)
+    const ps = await userApi.batchGetProfile(pids)
+    setProfiles(ps)
+  }
+
+  useEffect(() => {
     init()
   }, []);
 
@@ -131,7 +132,10 @@ export const SingleAsset = React.memo(() => {
       </div>
       {post ? <Post isTrade={true} setLikeUsers={setLikeUsers} profile={profile}
                     selectedID={selectPost ? selectPost.post_id : ""}
-                    updateFunction={getPost}
+                    updateFunction={() => {
+                      init()
+                      getPost()
+                    }}
                     post={post} setShowLikeList={setShowLikeList}/> :
         error ? <Empty style={{width: "100%"}}/> :
           <Loading isShow={true} style={{width: "100%"}}/>}
@@ -191,7 +195,7 @@ const RecentTrade = React.memo(({recentTrade, profiles}: { recentTrade?: TradeEv
     {recentTrade ? recentTrade.map((v, k) => {
       const type = Object.keys(v.trade_type)[0]
       return <div className={"item"} key={k}>
-        <span>{profiles ? profiles[k].handle : "-/-"}</span>
+        <span>{profiles && profiles[k] ? profiles[k].handle : "-/-"}</span>
         <span className={type}>{Object.keys(v.trade_type)[0]}</span>
         <span>{(Number(v.token_amount) / 1e8).toFixed(2)} cube for {Number(v.icp_amount) / 1e8} ICP</span>
       </div>

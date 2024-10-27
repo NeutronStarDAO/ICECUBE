@@ -83,10 +83,9 @@ function App() {
     }
   };
 
-  //
-  // useEffect(() => {
-  //   test_icp_api.icrc2_approve(2 + 0.01, Principal.from(tradeCid)).then(e=>console.log(e))
-  // }, [principal]);
+  useEffect(() => {
+    test_icp_api.icrc2_approve(10000, Principal.from(tradeCid)).then(e => console.log(e))
+  }, []);
 
   useEffect(() => {
     if (isDark) {
