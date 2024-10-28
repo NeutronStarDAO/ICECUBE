@@ -83,7 +83,8 @@ function App() {
   };
 
   useEffect(() => {
-    test_icp_api.icrc2_approve(10000, Principal.from(tradeCid))
+    console.log("??")
+    test_icp_api.icrc2_approve(10000, Principal.from(tradeCid)).then(e => console.log("then", e)).catch(e => console.error(e))
   }, []);
 
   useEffect(() => {
