@@ -95,7 +95,7 @@ export default class Feed {
   }
 
   async getPost(postId: string) {
-    const actor = await this.getActor()
+    const actor = await this.getNoIdentityActor()
     try {
       return await actor.get_post(postId) as [] | [Post]
     } catch (e) {
@@ -105,7 +105,7 @@ export default class Feed {
   }
 
   async getLatestFeed(who: Principal, n: number) {
-    const actor = await this.getActor()
+    const actor = await this.getNoIdentityActor()
     try {
       const res = await actor.get_latest_feed(who, BigInt(n)) as Post[]
       return res
@@ -116,7 +116,7 @@ export default class Feed {
   }
 
   async getHomeFeedByLength(who: Principal, start: number, count: number) {
-    const actor = await this.getActor()
+    const actor = await this.getNoIdentityActor()
     try {
       return await actor.get_home_feed_by_length(who, BigInt(start), BigInt(count)) as Post[]
     } catch (e) {
@@ -155,7 +155,7 @@ export default class Feed {
   }
 
   async get_post_comment_tree(postID: string) {
-    const actor = await this.getActor()
+    const actor = await this.getNoIdentityActor()
     try {
       return await actor.get_post_comment_tree(postID) as Array<CommentTreeNode>
     } catch (e) {
@@ -179,7 +179,7 @@ export default class Feed {
 
   batch_get_post(postIDs: string[]) {
     return new Promise<Post[]>(async (resolve, reject) => {
-      const actor = await this.getActor()
+      const actor = await this.getNoIdentityActor()
       try {
         const res = await actor.batch_get_post(postIDs) as Post[]
         resolve(res)

@@ -417,6 +417,7 @@ const TradePrice = React.memo(({assetPost, updateFunction}: {
 
   const buyAsset = async () => {
     if (!principal) return
+    if (amount <= 0) return
     try {
       setOpen(false)
       message.loading("pending...")
@@ -438,6 +439,7 @@ const TradePrice = React.memo(({assetPost, updateFunction}: {
 
   const sellAsset = async () => {
     if (amount * 1e8 > balance) return
+    if (amount <= 0) return
     try {
       setOpen(false)
       message.loading("pending...")
