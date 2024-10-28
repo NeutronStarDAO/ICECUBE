@@ -1,6 +1,7 @@
 .asset_info {
   width: 100%;
-  padding: 2rem 5rem;
+  padding: 2.7rem 3rem;
+  font-family: "Fredoka", sans-serif;
 
   &_head {
     display: flex;
@@ -10,13 +11,22 @@
 
     span {
       font-size: 2.7rem;
-      padding: 1rem 2rem;
+      padding: 0.5rem 1.7rem;
       cursor: pointer;
 
-      &:hover {
-        background-color: #BDD5FF;
+      &:nth-child(1):hover, &:nth-child(2):hover {
+        background-color: #F0F4FF;
         border-radius: 3rem;
+      }
 
+      &:nth-child(2) {
+        position: relative;
+        right: 7rem;
+      }
+
+      &:nth-child(3) {
+        cursor: default;
+        margin-right: 3rem;
       }
     }
 
@@ -43,7 +53,6 @@
 
     &_left {
       flex: 1.4;
-
 
       .item {
         display: flex;
@@ -72,18 +81,20 @@
     }
 
     &_right {
-      flex: 1;
+      // flex: 1 1;
+      width: 37%;
 
       .item {
         display: flex;
         justify-content: space-between;
 
         & > :nth-child(1) {
-          font-size: 2.4rem;
+          font-size: 2.3rem;
         }
 
         & > :nth-child(2) {
-          font-size: 2.6rem;
+          font-size: 2.3rem;
+          font-weight: 500;
         }
       }
     }
