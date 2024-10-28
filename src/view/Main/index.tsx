@@ -457,7 +457,7 @@ const TradePrice = React.memo(({assetPost, updateFunction}: {
 
   return <div className={"post_trade_price"} onClick={e => e.stopPropagation()}>
     <span>
-      {price === undefined ? "-/-" : (price / 1e8).toFixed(3) + "ICP / Cube"}
+      {price === undefined ? "-/-" : (price / 1e8).toFixed(3) + " ICP / Cube"}
     </span>
     <span className={"button_wrap"}>
       <span style={{backgroundColor: "#B4F7B3"}} onClick={() => {
