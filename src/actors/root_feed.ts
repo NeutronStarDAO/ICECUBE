@@ -1,18 +1,17 @@
 import {idlFactory} from "../declarations/root_feed/root_feed.did.js"
 import {Principal} from "@dfinity/principal";
-import {CommonStore} from "../utils/Store";
-import {getActor2} from "../utils/Actor2";
+import {getActor} from "../utils/Actor";
 
 const rootFeedCai = "n7aoo-5aaaa-aaaan-qmtia-cai"
 
 class rootFeed {
 
   private static async getActor() {
-    return await getActor2.createActor(idlFactory, rootFeedCai);
+    return await getActor.createActor(idlFactory, rootFeedCai);
   }
 
   private static async getNoIdentityActor() {
-    return await getActor2.noIdentityActor(idlFactory, rootFeedCai);
+    return await getActor.noIdentityActor(idlFactory, rootFeedCai);
   }
 
   async init_user_feed(): Promise<Principal> {

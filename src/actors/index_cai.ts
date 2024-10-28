@@ -5,7 +5,7 @@ import {
   GetAccountIdentifierTransactionsResult,
   GetAccountTransactionsArgs
 } from "../declarations/Index";
-import {getActor2} from "../utils/Actor2";
+import {getActor} from "../utils/Actor";
 import {CommonStore} from "../utils/Store";
 
 
@@ -13,7 +13,7 @@ const indexCai = "qhbym-qaaaa-aaaaa-aaafq-cai"
 export default class IndexCai {
 
   private async getActor() {
-    return await getActor2.createActor(idlFactory, indexCai);
+    return await getActor.createActor(idlFactory, indexCai);
   }
 
   async getTx(who: Principal): Promise<GetAccountIdentifierTransactionsResponse> {

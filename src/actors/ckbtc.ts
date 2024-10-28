@@ -2,18 +2,18 @@ import {idlFactory} from "../declarations/ckBTC/ckbtc.did";
 import {Principal} from "@dfinity/principal";
 import {Account, Result, TransferArg} from "../declarations/ckBTC/ckbtc";
 import {CommonStore} from "../utils/Store";
-import {getActor2} from "../utils/Actor2";
+import {getActor} from "../utils/Actor";
 
 
 const indexCai = "mxzaz-hqaaa-aaaar-qaada-cai"
 export default class CkBTC {
 
   private async getActor() {
-    return await getActor2.createActor(idlFactory, indexCai);
+    return await getActor.createActor(idlFactory, indexCai);
   }
 
   private async getNoIdentityActor() {
-    return await getActor2.noIdentityActor(idlFactory, indexCai);
+    return await getActor.noIdentityActor(idlFactory, indexCai);
   }
 
   async ckBTCBalance(who: Principal) {

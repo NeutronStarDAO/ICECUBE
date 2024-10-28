@@ -3,12 +3,10 @@ import "./index.scss"
 import React, {useEffect} from "react"
 import Icon from "../../Icons/Icon";
 import {Theme, themeKey, useAuth} from "../../utils/useAuth";
-// @ts-ignore
-import {useIdentityKit} from "@nfid/identitykit/react";
+
 
 export const Settings = () => {
-  const {setTheme, theme} = useAuth()
-  const {disconnect} = useIdentityKit()
+  const {setTheme, theme,logOut} = useAuth()
 
   const handleClick = (theme: Theme) => {
     setTheme(theme)
@@ -46,7 +44,7 @@ export const Settings = () => {
       </div>
       <div style={{cursor: "pointer"}} className={"setting_button"}>
         <span onClick={() => {
-          disconnect?.()
+          logOut?.()
           window.location.reload()
         }}>Log Out</span>
       </div>

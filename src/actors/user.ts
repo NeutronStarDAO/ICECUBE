@@ -2,18 +2,18 @@ import {idlFactory} from "../declarations/user/user.did.js";
 import {Profile} from "../declarations/user/user";
 import {Principal} from "@dfinity/principal";
 import {CommonStore} from "../utils/Store";
-import {getActor2} from "../utils/Actor2";
+import {getActor} from "../utils/Actor";
 
 const userCanisterId = "pf4gs-dqaaa-aaaan-qmtha-cai"
 
 class User {
 
   private static async getActor() {
-    return await getActor2.createActor(idlFactory, userCanisterId);
+    return await getActor.createActor(idlFactory, userCanisterId);
   }
 
   private static async getNoIdentityActor() {
-    return await getActor2.noIdentityActor(idlFactory, userCanisterId);
+    return await getActor.noIdentityActor(idlFactory, userCanisterId);
   }
 
   async createProfile(newProfile: Profile) {

@@ -6,17 +6,17 @@ import {useAuth} from "../../utils/useAuth";
 import {Tooltip} from "antd";
 import {PostModal} from "../Modal/Post";
 import {useProfileStore} from "../../redux";
-import {
-  ConnectWallet,
-  ConnectWalletButtonProps
-// @ts-ignore
-} from "@nfid/identitykit/react"
+// import {
+//   ConnectWallet,
+//   ConnectWalletButtonProps
+// // @ts-ignore
+// } from "@nfid/identitykit/react"
 
 const menu = ["Home", "Explore", "Trade", "Wallet", "Settings"]
 export const Side = ({scrollToTop}: { scrollToTop: Function }) => {
   const navigate = useNavigate()
   const location = useLocation()
-  const {isDark, isAuth} = useAuth()
+  const {isDark, isAuth, logIn} = useAuth()
   const [open, setOpen] = useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
@@ -70,7 +70,9 @@ export const Side = ({scrollToTop}: { scrollToTop: Function }) => {
       </div>
       {
         isAuth ? <UserInfo closeSidebar={closeSidebar}/>
-          : <ConnectWallet connectButtonComponent={ConnectWalletButton}/>
+          : <div className="side_bottom" onClick={logIn as any}>
+            👋 Hi, login
+          </div>
 
       }
     </div>
@@ -81,13 +83,13 @@ export const Side = ({scrollToTop}: { scrollToTop: Function }) => {
   </>
 }
 
-function ConnectWalletButton({onClick, ...props}: ConnectWalletButtonProps) {
-  return (
-    <div className="side_bottom" onClick={onClick as any}>
-      👋 Hi, login
-    </div>
-  )
-}
+// function ConnectWalletButton({onClick, ...props}: ConnectWalletButtonProps) {
+//   return (
+//     <div className="side_bottom" onClick={onClick as any}>
+//       👋 Hi, login
+//     </div>
+//   )
+// }
 
 const Logo = () => {
   const navigate = useNavigate();

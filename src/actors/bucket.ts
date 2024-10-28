@@ -1,7 +1,7 @@
 import {Principal} from "@dfinity/principal";
 import {idlFactory} from "../declarations/bucket/bucket.did.js";
 import {Post} from "../declarations/bucket/bucket";
-import {getActor2} from "../utils/Actor2";
+import {getActor} from "../utils/Actor";
 
 
 export default class Bucket {
@@ -13,7 +13,7 @@ export default class Bucket {
   }
 
   private async getActor() {
-    return await getActor2.createActor(idlFactory, this.canisterId.toString());
+    return await getActor.createActor(idlFactory, this.canisterId.toString());
   }
 
   async getLatestFeed(n: number) {

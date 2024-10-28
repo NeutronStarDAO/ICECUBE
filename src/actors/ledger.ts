@@ -1,7 +1,7 @@
 import {Principal} from "@dfinity/principal";
 import {Account, Result, SendArgs, TransferArg} from "../declarations/Ledger/ledger";
 import {idlFactory} from "../declarations/Ledger/ledger.did";
-import {getActor2} from "../utils/Actor2";
+import {getActor} from "../utils/Actor";
 import {CommonStore} from "../utils/Store";
 
 
@@ -9,11 +9,11 @@ const ledgerCai = "ryjl3-tyaaa-aaaaa-aaaba-cai"
 export default class Ledger {
 
   private async getNoIdentityActor() {
-    return await getActor2.noIdentityActor(idlFactory, ledgerCai);
+    return await getActor.noIdentityActor(idlFactory, ledgerCai);
   }
 
   private async getActor() {
-    return await getActor2.createActor(idlFactory, ledgerCai);
+    return await getActor.createActor(idlFactory, ledgerCai);
   }
 
   async icpBalance(who: Principal) {

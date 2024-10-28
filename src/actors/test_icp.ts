@@ -2,17 +2,17 @@ import {Principal} from "@dfinity/principal";
 import {idlFactory} from "../declarations/test_icp/index.did";
 import {Account, ApproveArgs} from "../declarations/test_icp";
 import {CommonStore} from "../utils/Store";
-import {getActor2} from "../utils/Actor2";
+import {getActor} from "../utils/Actor";
 
 const cid = "xqjmi-wiaaa-aaaan-qznra-cai"
 export default class Test_icp {
 
   private async getNoIdentityActor() {
-    return await getActor2.noIdentityActor(idlFactory, cid);
+    return await getActor.noIdentityActor(idlFactory, cid);
   }
 
   private async getActor() {
-    return await getActor2.createActor(idlFactory, cid);
+    return await getActor.createActor(idlFactory, cid);
   }
 
 

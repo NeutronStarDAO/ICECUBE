@@ -1,8 +1,7 @@
 import {Principal} from "@dfinity/principal";
 import {idlFactory} from "../declarations/feed/feed.did.js";
 import {CommentTreeNode, Post} from "../declarations/feed/feed";
-import {getActor2} from "../utils/Actor2";
-import {CommonStore} from "../utils/Store";
+import {getActor} from "../utils/Actor";
 
 export default class Feed {
 
@@ -13,11 +12,11 @@ export default class Feed {
   }
 
   private async getActor() {
-    return await getActor2.createActor(idlFactory, this.canisterId.toString());
+    return await getActor.createActor(idlFactory, this.canisterId.toString());
   }
 
   private async getNoIdentityActor() {
-    return await getActor2.noIdentityActor(idlFactory, this.canisterId.toString());
+    return await getActor.noIdentityActor(idlFactory, this.canisterId.toString());
   }
 
   async createPost(content: string, p_urls: string[]) {
