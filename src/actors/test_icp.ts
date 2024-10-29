@@ -4,7 +4,7 @@ import {Account, ApproveArgs} from "../declarations/test_icp";
 import {CommonStore} from "../utils/Store";
 import {getActor} from "../utils/Actor";
 
-const cid = "xqjmi-wiaaa-aaaan-qznra-cai"
+const cid = "ryjl3-tyaaa-aaaaa-aaaba-cai"
 export default class Test_icp {
 
   private async getNoIdentityActor() {
@@ -45,7 +45,7 @@ export default class Test_icp {
     })
   }
 
-  icrc2_approve(amount: number, who: Principal) {
+  icrc2_approve(amount: bigint, who: Principal) {
     return new Promise<boolean>(async (resolve, reject) => {
       try {
         const arg: ApproveArgs = {
@@ -53,7 +53,7 @@ export default class Test_icp {
           memo: [],
           from_subaccount: [],
           created_at_time: [],
-          amount: BigInt(Math.floor(amount * 1e8)),
+          amount,
           expected_allowance: [],
           expires_at: [],
           spender: {
@@ -61,7 +61,7 @@ export default class Test_icp {
             subaccount: []
           }
         }
-        const actor = await this.getNoIdentityActor()
+        const actor = await this.getActor()
         const result = await actor.icrc2_approve(arg) as boolean
         resolve(result)
       } catch (e) {

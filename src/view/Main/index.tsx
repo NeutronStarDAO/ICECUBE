@@ -21,6 +21,7 @@ import {tradeApi, tradeCid} from "../../actors/trade";
 import {Trade} from "../../components/Modal/Trade";
 import {test_icp_api} from "../../actors/test_icp";
 import {Principal} from "@dfinity/principal";
+import {ledgerApi} from "../../actors/ledger";
 
 const pageCount = 5
 
@@ -421,8 +422,9 @@ const TradePrice = React.memo(({assetPost, updateFunction}: {
     try {
       setOpen(false)
       message.loading("pending...")
-      const mint = await test_icp_api.mint(principal, icpAmount)
-      if (!mint) throw new Error("mint failed")
+      const ba = await ledgerApi.icpBalance(principal)
+      const ap = await test_icp_api.icrc2_approve(ba, Principal.from(tradeCid))
+      console.log(ap)
       if ("id" in assetPost) {
         const res = await tradeApi.buy(assetPost.id, BigInt(amount * 1e8))
         if (res) message.success("success")

@@ -23,6 +23,7 @@ import {Trade} from "./view/Trade";
 import {SingleAsset} from "./view/Trade/SingleAsset";
 import {test_icp_api} from "./actors/test_icp";
 import {tradeCid} from "./actors/trade";
+import {ledgerApi} from "./actors/ledger";
 
 const userFeedCai = Principal.from("mai5z-6yaaa-aaaan-qmtmq-cai")
 
@@ -81,10 +82,6 @@ function App() {
       });
     }
   };
-
-  useEffect(() => {
-    test_icp_api.icrc2_approve(10000, Principal.from(tradeCid)).then(e => console.log("then", e)).catch(e => console.error(e))
-  }, []);
 
   useEffect(() => {
     if (isDark) {
