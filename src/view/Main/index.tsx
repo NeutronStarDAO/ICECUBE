@@ -421,14 +421,14 @@ const TradePrice = React.memo(({assetPost, updateFunction}: {
     if (amount <= 0) return
     try {
       setOpen(false)
-      message.loading("pending...")
+      message.loading("Pending...")
       const ba = await ledgerApi.icpBalance(principal)
       const ap = await test_icp_api.icrc2_approve(ba, Principal.from(tradeCid))
       console.log(ap)
       if ("id" in assetPost) {
         const res = await tradeApi.buy(assetPost.id, BigInt(amount * 1e8))
-        if (res) message.success("success")
-        else throw new Error("failed")
+        if (res) message.success("Success")
+        else throw new Error("Failed")
       }
     } catch (e: any) {
       console.log(e)
@@ -444,11 +444,11 @@ const TradePrice = React.memo(({assetPost, updateFunction}: {
     if (amount <= 0) return
     try {
       setOpen(false)
-      message.loading("pending...")
+      message.loading("Pending...")
       if ("id" in assetPost) {
         const res = await tradeApi.sell(assetPost.id, BigInt(amount * 1e8))
-        if (res) message.success("success")
-        else throw new Error("failed")
+        if (res) message.success("Success")
+        else throw new Error("Failed")
       }
     } catch (e: any) {
       console.log(e)

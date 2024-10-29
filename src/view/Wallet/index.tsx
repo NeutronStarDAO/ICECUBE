@@ -81,7 +81,7 @@ const CubeCard = ({image, cubes, textOverlay, id}: {
         })()}
         {image && <img src={image} alt={`Cube ${cubes}`}/>}
       </div>
-      <div style={{borderTop: !image ? "1px solid black" : "none"}} className="cube-label">{cubes} Cubes</div>
+      <div style={{borderTop: !image ? "1px solid black" : "none", color: "#000"}} className="cube-label">{cubes} Cubes</div>
     </div>
   );
 };
