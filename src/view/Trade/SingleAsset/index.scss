@@ -68,14 +68,17 @@
 
         & > .Buy {
           background-color: #B4F7B3;
+          color: #000;
         }
 
         & > .Sell {
           background-color: #FFC8C8;
+          color: #000;
         }
 
         & > .Mint {
           background-color: #BDD5FF;
+          color: #000;
         }
       }
     }
@@ -97,6 +100,41 @@
           font-weight: 500;
         }
       }
+    }
+  }
+}
+
+.dark_asset_info {
+
+  & .asset_info_head {
+    border-bottom: 1px solid #c5d9fb;
+
+    span {
+
+      &:nth-child(1):hover, &:nth-child(2):hover {
+        background-color: #3b4c7b;
+      }
+
+      &:nth-child(2) {
+        position: relative;
+        right: 7rem;
+      }
+
+      &:nth-child(3) {
+        cursor: default;
+        margin-right: 3rem;
+      }
+    }
+
+    .active {
+      background-color: #3b4c7b;
+    }
+  }
+
+  & .asset_info_body {
+
+    .asset_info_body_left, .asset_info_body_right {
+      background-color: #243050;
     }
   }
 }

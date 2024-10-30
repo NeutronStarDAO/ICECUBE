@@ -367,7 +367,7 @@ const TradePrice = React.memo(({assetPost, updateFunction}: {
   const [open, setOpen] = useState(false)
   const [type, setType] = useState<"buy" | "sell">("buy")
   const [amount, setAmount] = useState(0)
-  const {principal} = useAuth()
+  const {principal, isDark} = useAuth()
   const [icpAmount, setIcpAmount] = useState(0)
   const [balance, setBalance] = useState(0)
 
@@ -460,15 +460,15 @@ const TradePrice = React.memo(({assetPost, updateFunction}: {
   }
 
   return <div className={"post_trade_price"} onClick={e => e.stopPropagation()}>
-    <span>
+    <span className={` ${isDark ? "dark_post_trade_price" : ""}`}>
       {price === undefined ? "-/-" : (price / 1e8).toFixed(3) + " ICP / Cube"}
     </span>
     <span className={"button_wrap"}>
-      <span style={{backgroundColor: "#B4F7B3"}} onClick={() => {
+      <span style={{backgroundColor: "#B4F7B3", color: "#000"}} onClick={() => {
         setOpen(true)
         setType("buy")
       }}>Buy</span>
-      <span style={{backgroundColor: "#FFC8C8"}} onClick={() => {
+      <span style={{backgroundColor: "#FFC8C8", color: "#000"}} onClick={() => {
         setOpen(true)
         setType("sell")
       }}>Sell</span>
