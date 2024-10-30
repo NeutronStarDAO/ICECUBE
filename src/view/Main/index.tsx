@@ -384,7 +384,7 @@ const TradePrice = React.memo(({assetPost, updateFunction}: {
   const [open, setOpen] = useState(false)
   const [type, setType] = useState<"buy" | "sell">("buy")
   const [amount, setAmount] = useState(0)
-  const {principal} = useAuth()
+  const {principal, isDark} = useAuth()
   const [icpAmount, setIcpAmount] = useState(0)
   const [balance, setBalance] = useState(0)
   const [getingPrice, setGetingPrice] = useState(false)
@@ -446,14 +446,14 @@ const TradePrice = React.memo(({assetPost, updateFunction}: {
     if (amount <= 0) return
     try {
       setOpen(false)
-      message.loading("pending...")
+      message.loading("Pending...")
       const ba = await ledgerApi.icpBalance(principal)
       const ap = await test_icp_api.icrc2_approve(ba, Principal.from(tradeCid))
       console.log(ap)
       if ("id" in assetPost) {
         const res = await tradeApi.buy(assetPost.id, BigInt(amount * 1e8))
-        if (res) message.success("success")
-        else throw new Error("failed")
+        if (res) message.success("Success")
+        else throw new Error("Failed")
       }
     } catch (e: any) {
       console.log(e)
@@ -469,11 +469,11 @@ const TradePrice = React.memo(({assetPost, updateFunction}: {
     if (amount <= 0) return
     try {
       setOpen(false)
-      message.loading("pending...")
+      message.loading("Pending...")
       if ("id" in assetPost) {
         const res = await tradeApi.sell(assetPost.id, BigInt(amount * 1e8))
-        if (res) message.success("success")
-        else throw new Error("failed")
+        if (res) message.success("Success")
+        else throw new Error("Failed")
       }
     } catch (e: any) {
       console.log(e)
@@ -485,15 +485,15 @@ const TradePrice = React.memo(({assetPost, updateFunction}: {
   }
 
   return <div className={"post_trade_price"} onClick={e => e.stopPropagation()}>
-    <span>
+    <span className={` ${isDark ? "dark_post_trade_price" : ""}`}>
       {price === undefined ? "-/-" : (price / 1e8).toFixed(3) + " ICP / Cube"}
     </span>
     <span className={"button_wrap"}>
-      <span style={{backgroundColor: "#B4F7B3"}} onClick={() => {
+      <span style={{backgroundColor: "#B4F7B3", color: "#000"}} onClick={() => {
         setOpen(true)
         setType("buy")
       }}>Buy</span>
-      <span style={{backgroundColor: "#FFC8C8"}} onClick={() => {
+      <span style={{backgroundColor: "#FFC8C8", color: "#000"}} onClick={() => {
         setOpen(true)
         setType("sell")
       }}>Sell</span>

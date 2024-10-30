@@ -68,14 +68,17 @@
 
         & > .Buy {
           background-color: #B4F7B3;
+          color: #000;
         }
 
         & > .Sell {
           background-color: #FFC8C8;
+          color: #000;
         }
 
         & > .Mint {
           background-color: #BDD5FF;
+          color: #000;
         }
       }
     }
@@ -95,6 +98,119 @@
         & > :nth-child(2) {
           font-size: 2.3rem;
           font-weight: 500;
+        }
+      }
+    }
+  }
+}
+
+.dark_asset_info {
+
+  & .asset_info_head {
+    border-bottom: 1px solid #c5d9fb;
+
+    span {
+
+      &:nth-child(1):hover, &:nth-child(2):hover {
+        background-color: #3b4c7b;
+      }
+
+      &:nth-child(2) {
+        position: relative;
+        right: 7rem;
+      }
+
+      &:nth-child(3) {
+        cursor: default;
+        margin-right: 3rem;
+      }
+    }
+
+    .active {
+      background-color: #3b4c7b;
+    }
+  }
+
+  & .asset_info_body {
+
+    .asset_info_body_left, .asset_info_body_right {
+      background-color: #243050;
+    }
+  }
+}
+
+@media screen and (max-width: 500px) {
+  .asset_info {
+    padding: 2rem 1rem;
+  
+    &_head {
+      padding-bottom: 0.7rem;
+  
+      span {
+        font-size: 2.5rem;
+        padding: 0.5rem 1.5rem;
+  
+        &:nth-child(2) {
+          position: unset !important;
+        }
+  
+        &:nth-child(3) {
+          margin-right: 0;
+        }
+      }
+  
+      .active {
+        border-radius: 3rem;
+      }
+    }
+  
+    &_body {
+      gap: 1rem;
+      margin-top: 2rem;
+      align-items: start;
+      flex-direction: column-reverse;
+  
+      &_left, &_right {
+        border-radius: 1.5rem;
+        padding: 1rem 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+  
+      &_left {
+        width: 100%;
+  
+        .item {
+          display: flex;
+          justify-content: space-between;
+          padding: 1rem 0;
+          font-size: 2.1rem;
+          flex-direction: column;
+  
+          & > :nth-child(2) {
+            text-transform: uppercase;
+            border-radius: 1rem;
+            padding: 0.5rem 1rem;
+          }
+        }
+      }
+  
+      &_right {
+        width: 75%;
+  
+        .item {
+          display: flex;
+          justify-content: space-between;
+  
+          & > :nth-child(1) {
+            font-size: 2.3rem;
+          }
+  
+          & > :nth-child(2) {
+            font-size: 2.3rem;
+            font-weight: 500;
+          }
         }
       }
     }

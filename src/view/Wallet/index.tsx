@@ -61,10 +61,11 @@ const CubeCard = ({image, cubes, textOverlay, id}: {
   id: number
 }) => {
   const [hover, setHover] = useState(false);
-  const na = useNavigate()
+  const na = useNavigate();
+  const {isDark} = useAuth()
   return (
     <div
-      className="cube-card"
+      className={`cube-card ${isDark ? "dark-cube-card" : ""}`}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       onClick={() => {
@@ -81,7 +82,7 @@ const CubeCard = ({image, cubes, textOverlay, id}: {
         })()}
         {image && <img src={image} alt={`Cube ${cubes}`}/>}
       </div>
-      <div style={{borderTop: !image ? "1px solid black" : "none"}} className="cube-label">{cubes} Cubes</div>
+      <div style={{borderTop: !image ? "1px solid black" : "none", color: "#000"}} className="cube-label">{cubes} Cubes</div>
     </div>
   );
 };

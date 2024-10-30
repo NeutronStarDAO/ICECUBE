@@ -6,6 +6,7 @@ import {LikeList} from "../../../components/LikeList";
 import {Profile} from "../../../declarations/user/user";
 import {useSelectPostStore} from "../../../redux/features/SelectPost";
 import {userApi} from "../../../actors/user";
+import {useAuth} from "../../../utils/useAuth";
 import {Loading} from "../../../components/Loading";
 import {Empty} from "antd";
 import Icon from "../../../Icons/Icon";
@@ -16,6 +17,7 @@ import {Asset, TradeEvent} from "../../../declarations/trade";
 import {AssetPost} from "../index";
 
 export const SingleAsset = React.memo(() => {
+  const {isDark} = useAuth()
   const {assetId} = useParams()
   const [post, setPost] = useState<AssetPost>()
   const [showLikeList, setShowLikeList] = useState(false)
@@ -124,7 +126,7 @@ export const SingleAsset = React.memo(() => {
               users={likeUsers}/>
     <div style={{display: showLikeList ? "none" : "flex"}} id={"content_main"}
          className={"main_wrap"}>
-      <div className={"title"}>
+      <div className={`title ${isDark ? "dark_title" : ""}`}>
           <span style={{cursor: "pointer", marginRight: "1rem"}} onClick={() => window.history.back()}>
           <Icon name={"back"}/>
       </span>
@@ -151,10 +153,10 @@ const AssetInfo = React.memo((props: {
   profiles?: Profile[], holders?: (Profile & { amount: bigint })[], totalValue?: number, supply?: number
 }) => {
   const [clickOne, setClickOne] = useState<number>(0)
-
+  const {isDark} = useAuth()
   const {recentTrade, profiles, holders, totalValue, supply} = props
 
-  return <div className={"asset_info"}>
+  return <div className={`asset_info ${isDark ? "dark_asset_info" : ""}`}>
     <div className={"asset_info_head"}>
       <span className={clickOne === 0 ? "active" : ""} onClick={() => setClickOne(0)}>Recent Trades</span>
       <span className={clickOne === 1 ? "active" : ""} onClick={() => setClickOne(1)}>Holders</span>
