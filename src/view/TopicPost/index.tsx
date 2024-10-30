@@ -11,7 +11,7 @@ import {LikeList} from "../../components/LikeList";
 import {dataAnalysisApi} from "../../actors/dataAnalysis";
 import {Post} from "../Main";
 
-const pageCount = 30
+const pageCount = 5
 export const TopicPost = () => {
   const [data, setData] = useState<postType[]>()
   const [page, setPage] = useState(0);
@@ -25,12 +25,14 @@ export const TopicPost = () => {
   const tag = searchParams.get("t")
 
   const getData = React.useCallback(async () => {
+    console.log(page, data)
     const res = await dataAnalysisApi.get_topic_post(tag ? "#" + tag : "", page * pageCount, pageCount)
+    console.log(res)
     if (page === 0) {
-      if (res.length < 30) setIsEnd(true)
+      if (res.length < pageCount) setIsEnd(true)
       return setData(res)
     }
-    if (res.length < 30 || res.length === 0) setIsEnd(true)
+    if (res.length < pageCount || res.length === 0) setIsEnd(true)
     const newArr = [...(data ?? []), ...res]
     setData(newArr);
   }, [page, tag])
@@ -41,6 +43,9 @@ export const TopicPost = () => {
 
   useEffect(() => {
     setData(undefined)
+  }, [tag]);
+
+  useEffect(() => {
     getData()
   }, [getData]);
 

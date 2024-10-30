@@ -2,10 +2,9 @@ import {getActor} from "../utils/Actor";
 import {idlFactory} from "../declarations/trade/index.did";
 import {Asset, Result, Result_1, TradeEvent} from "../declarations/trade";
 import type {Principal} from "@dfinity/principal";
-import {CommonStore} from "../utils/Store";
 
 export const tradeCid = "r4b4l-baaaa-aaaan-qzngq-cai"
-export default class Trade {
+class Trade {
 
   private async getActor() {
     return await getActor.createActor(idlFactory, tradeCid);
@@ -81,11 +80,35 @@ export default class Trade {
     })
   }
 
+  get_buy_price_after_fee(assetId: bigint, tokenAmount: bigint) {
+    return new Promise<number>(async (resolve, reject) => {
+      try {
+        const actor = await this.getNoIdentityActor()
+        const result = await actor.get_buy_price_after_fee(assetId, tokenAmount) as bigint
+        resolve(Number(result))
+      } catch (e) {
+        reject(e)
+      }
+    })
+  }
+
   get_sell_price(assetId: bigint, tokenAmount: bigint) {
     return new Promise<number>(async (resolve, reject) => {
       try {
         const actor = await this.getNoIdentityActor()
         const result = await actor.get_sell_price(assetId, tokenAmount) as bigint
+        resolve(Number(result))
+      } catch (e) {
+        reject(e)
+      }
+    })
+  }
+
+  get_sell_price_after_fee(assetId: bigint, tokenAmount: bigint) {
+    return new Promise<number>(async (resolve, reject) => {
+      try {
+        const actor = await this.getNoIdentityActor()
+        const result = await actor.get_sell_price_after_fee(assetId, tokenAmount) as bigint
         resolve(Number(result))
       } catch (e) {
         reject(e)

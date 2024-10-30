@@ -36,7 +36,7 @@ export const Side = ({scrollToTop}: { scrollToTop: Function }) => {
         <div className={"side_items"}>
           {menu.map((v, k) => {
             const isClick = location.pathname === `/${v.toLowerCase()}`
-            const notAllow = (v === "Home" || v === "Wallet") && !isAuth
+            const notAllow = (v === "Home" || v === "Wallet" || v === "Trade") && !isAuth
             return <div style={{
               cursor: notAllow ? "no-drop" : "pointer",
               background: isClick ? "#B0CCFF" : "",
@@ -49,7 +49,7 @@ export const Side = ({scrollToTop}: { scrollToTop: Function }) => {
                           closeSidebar()
                         }} key={k} className="item">
               <Icon name={isClick ? `${v}_Click` as Name : v as Name}/> &nbsp;
-              {v === "Home" || v === "Wallet" ?
+              {v === "Home" || v === "Wallet" || v === "Trade" ?
                 <Tooltip title={notAllow ? "Please login first" : ""}>{v}</Tooltip> :
                 <div className="sider_btn_word">{v}</div>
               }

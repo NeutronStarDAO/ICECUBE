@@ -12,6 +12,7 @@ import {tradeApi} from "../../actors/trade";
 import {Asset} from "../../declarations/trade";
 import {useAuth} from "../../utils/useAuth";
 import Feed from "../../actors/feed";
+import {useNavigate} from "react-router-dom";
 
 const pageCount = 5
 
@@ -24,11 +25,16 @@ export const Trade = () => {
   const [showLikeList, setShowLikeList] = useState(false)
   const [likeUsers, setLikeUsers] = useState<Profile[]>()
   const {post: selectPost} = useSelectPostStore()
-  const {userFeedCai} = useAuth()
+  const {userFeedCai,isAuth} = useAuth()
   const loader = useRef(null)
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    !isAuth && navigate("/explore")
+  }, [isAuth, navigate])
 
   const getData = React.useCallback(async () => {
-    if (!userFeedCai) return setData([])
+    if (!userFeedCai) return setData(undefined)
     const assets = await tradeApi.get_asset_entries_by_len(page * pageCount, pageCount)
     const postIds = assets.map(e => e.post_id)
     const api = new Feed(userFeedCai)
@@ -50,7 +56,6 @@ export const Trade = () => {
   }, [data]);
 
   useEffect(() => {
-    setData(undefined)
     getData()
   }, [getData]);
 
@@ -81,7 +86,7 @@ export const Trade = () => {
       <div className={"title"}>Trade</div>
       {data ? data.length === 0 ? <Empty style={{width: "100%"}}/>
         : data.map((v, k) => {
-          return <Post isTrade={true} setLikeUsers={setLikeUsers} key={k} profile={profiles[k]}
+          return <Post notShowDropdown={true} isTrade={true} setLikeUsers={setLikeUsers} key={k} profile={profiles[k]}
                        selectedID={selectPost ? selectPost.post_id : ""}
                        updateFunction={getData}
                        post={v} setShowLikeList={setShowLikeList}/>

@@ -5,7 +5,7 @@ import Icon from "../../../Icons/Icon";
 import {useAuth} from "../../../utils/useAuth";
 import {NumberInput} from "../../Common";
 
-export const Trade = ({open, setOpen, type, api, amount, setAmount, icpAmount, balance}: {
+export const Trade = ({open, setOpen, type, api, amount, setAmount, icpAmount, balance, gettingPrice}: {
   open: boolean,
   setOpen: Function,
   type: "buy" | "sell",
@@ -13,8 +13,9 @@ export const Trade = ({open, setOpen, type, api, amount, setAmount, icpAmount, b
   amount: number,
   setAmount: Function,
   icpAmount: number,
-  balance?: number
+  balance?: number, gettingPrice: boolean
 }) => {
+
   const {isDark} = useAuth()
 
   const cantStyle = {
@@ -51,7 +52,7 @@ export const Trade = ({open, setOpen, type, api, amount, setAmount, icpAmount, b
         <NumberInput integer={true} setAmount={setAmount} value={amount}/>
       </div>
       <span style={{textAlign: "start", fontSize: "1.6rem"}}>≈{icpAmount}ICP</span>
-      <div style={balance !== undefined && amount > balance ? cantStyle : {}} className={"done_button"}
+      <div style={(balance !== undefined && amount > balance) || gettingPrice ? cantStyle : {}} className={"done_button"}
            onClick={api as any}>
         Done
       </div>

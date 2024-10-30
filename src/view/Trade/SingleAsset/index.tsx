@@ -130,7 +130,7 @@ export const SingleAsset = React.memo(() => {
       </span>
         Trade Post
       </div>
-      {post ? <Post isTrade={true} setLikeUsers={setLikeUsers} profile={profile}
+      {post ? <Post notShowDropdown={true} isTrade={true} setLikeUsers={setLikeUsers} profile={profile}
                     selectedID={selectPost ? selectPost.post_id : ""}
                     updateFunction={() => {
                       init()

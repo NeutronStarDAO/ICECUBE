@@ -139,10 +139,24 @@ export const Main = forwardRef((_, ref: any) => {
 
 })
 
-export const Post = ({post, updateFunction, selectedID, profile, setShowLikeList, setLikeUsers, isTrade}: {
+export const Post = ({
+                       post,
+                       updateFunction,
+                       selectedID,
+                       profile,
+                       setShowLikeList,
+                       setLikeUsers,
+                       isTrade,
+                       notShowDropdown
+                     }: {
   post: AssetPost | postType,
   updateFunction: Function,
-  selectedID: string, profile?: Profile, setShowLikeList: Function, setLikeUsers: Function, isTrade?: boolean
+  selectedID: string,
+  profile?: Profile,
+  setShowLikeList: Function,
+  setLikeUsers: Function,
+  isTrade?: boolean,
+  notShowDropdown?: boolean
 }) => {
   const principal = post.user
   const location = useLocation()
@@ -317,8 +331,11 @@ export const Post = ({post, updateFunction, selectedID, profile, setShowLikeList
     >
       <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
         <PostUserInfo profile={profile} time={arg.time}/>
-        <div className={"dropdown_select_modal"}
-             style={{position: "relative", display: location.pathname === "/explore" ? "none" : "block"}}>
+        {!notShowDropdown && <div className={"dropdown_select_modal"}
+                                  style={{
+                                    position: "relative",
+                                    display: location.pathname === "/explore" ? "none" : "block"
+                                  }}>
           <div ref={moreButton} className={"more_wrap"} onClick={e => {
             e.stopPropagation()
             setShowMore(true)
@@ -335,7 +352,7 @@ export const Post = ({post, updateFunction, selectedID, profile, setShowLikeList
               <Icon name={"trash"}/>Delete
             </div>
           </div>
-        </div>
+        </div>}
       </div>
       <div className={"tweet"}>
         <ShowMoreTest playOne={playOne} setPlayOne={setPlayOne} postId={post.post_id} content={post.content}/>
@@ -370,6 +387,7 @@ const TradePrice = React.memo(({assetPost, updateFunction}: {
   const {principal} = useAuth()
   const [icpAmount, setIcpAmount] = useState(0)
   const [balance, setBalance] = useState(0)
+  const [getingPrice, setGetingPrice] = useState(false)
 
   useEffect(() => {
     const getBalance = async () => {
@@ -381,16 +399,22 @@ const TradePrice = React.memo(({assetPost, updateFunction}: {
     getBalance()
   }, []);
 
+
+
   useEffect(() => {
     const get_buy_price = async () => {
       if (!("id" in assetPost)) return
-      const res = await tradeApi.get_buy_price(assetPost.id, BigInt(Math.floor(amount * 1e8)))
+      setGetingPrice(true)
+      const res = await tradeApi.get_buy_price_after_fee(assetPost.id, BigInt(Math.floor(amount * 1e8)))
       setIcpAmount(res / 1e8)
+      setGetingPrice(false)
     }
     const get_sell_price = async () => {
       if (!("id" in assetPost)) return
-      const res = await tradeApi.get_sell_price(assetPost.id, BigInt(Math.floor(amount * 1e8)))
+      setGetingPrice(true)
+      const res = await tradeApi.get_sell_price_after_fee(assetPost.id, BigInt(Math.floor(amount * 1e8)))
       setIcpAmount(res / 1e8)
+      setGetingPrice(false)
     }
 
     const timer = setTimeout(() => {
@@ -402,13 +426,14 @@ const TradePrice = React.memo(({assetPost, updateFunction}: {
     }, 500)
     return () => {
       clearTimeout(timer)
+      setGetingPrice(false)
     }
 
   }, [amount, assetPost, type]);
 
   const getPrice = async () => {
     if (!("id" in assetPost)) return
-    const res = await tradeApi.get_buy_price(assetPost.id, BigInt(1e8))
+    const res = await tradeApi.get_buy_price_after_fee(assetPost.id, BigInt(1e8))
     setPrice(res)
   }
 
@@ -473,7 +498,7 @@ const TradePrice = React.memo(({assetPost, updateFunction}: {
         setType("sell")
       }}>Sell</span>
     </span>
-    <Trade balance={type === "buy" ? undefined : balance / 1e8} icpAmount={icpAmount} amount={amount}
+    <Trade gettingPrice={getingPrice} balance={type === "buy" ? undefined : balance / 1e8} icpAmount={icpAmount} amount={amount}
            setAmount={setAmount}
            api={type === "buy" ? buyAsset : sellAsset} type={type} setOpen={setOpen}
            open={open}/>
