@@ -210,3 +210,16 @@
     }
   }
 }
+
+
+@media screen and (max-width: 500px) {
+
+  .post_trade_price > :nth-child(1) {
+    font-size: 2.7rem;
+  }
+
+  .post_trade_price {
+    padding-left: 2rem;
+  }
+
+}
