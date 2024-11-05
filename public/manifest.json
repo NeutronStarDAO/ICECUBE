@@ -3,8 +3,13 @@
   "name": "ICP Social Network -- Proton",
   "icons": [
     {
-      "src": "img_1.png",
-      "sizes": "224x222",
+      "src": "img_1_100.png",
+      "sizes": "100x100",
+      "type": "image/png"
+    },
+    {
+      "src": "/img_1_224.png",
+      "sizes": "224x224",
       "type": "image/png"
     }
   ],
