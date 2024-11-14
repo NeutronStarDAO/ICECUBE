@@ -1,5 +1,6 @@
 use std::cell::RefCell;
 use std::borrow::Cow;
+use std::collections::HashMap;
 use candid::{CandidType, Decode, Encode, Nat, Principal};
 use serde::Deserialize;
 use ic_stable_structures::memory_manager::{MemoryId, MemoryManager, VirtualMemory};
@@ -119,6 +120,7 @@ impl Storable for NatRust {
 const CREATOR_PREMINT: u64 = 100_000_000; // 1e8
 const CREATOR_FEE_PERCENT: u64 = 5_000_000; // 5_000_000 / 1e8 = 5%
 const TOKEN_FEE: u64 = 0; 
+const ICP_FEE: u64 = 10_000;
 
 thread_local! {
     static MEMORY_MANAGER: RefCell<MemoryManager<DefaultMemoryImpl>> =
@@ -193,16 +195,22 @@ thread_local! {
     static ICP_CA: RefCell<StableCell<Principal, Memory>> = RefCell::new(
         StableCell::init(
             MEMORY_MANAGER.with(|m| m.borrow().get(MemoryId::new(12))), 
-            Principal::from_text("xqjmi-wiaaa-aaaan-qznra-cai").unwrap()
+            Principal::from_text("ryjl3-tyaaa-aaaaa-aaaba-cai").unwrap()
         ).unwrap()
     )
 }
 
-// #[ic_cdk::update]
-// fn test_update_canister(icp_ca: Principal) -> bool {
-//     ICP_CA.with(|ca| ca.borrow_mut().set(icp_ca).unwrap());
-//     true
-// }
+#[ic_cdk::update]
+async fn update_icp_ca(icp_ca: Principal) -> bool {
+    assert!(ic_cdk::api::is_controller(&ic_cdk::caller()));
+    ICP_CA.with(|ca| ca.borrow_mut().set(icp_ca).unwrap());
+    true
+}
+
+#[ic_cdk::query]
+fn get_icp_ca() -> Principal {
+    ICP_CA.with(|ca| ca.borrow().get().clone())
+}
 
 #[ic_cdk::query]
 fn is_post_be_asset(post_id: String) -> Option<u64> {
@@ -272,6 +280,35 @@ fn get_asset_entries_by_len(start: u64, len: u64) -> Vec<Asset> {
 
         entries
     })
+}
+
+#[ic_cdk::query]
+fn get_asset_entires_sorted_by_vol() -> Vec<(Asset, Nat)> {
+    let mut vol_map: HashMap<u64, Nat> = HashMap::new();
+    TRADE_EVENT.with(|logs| {
+        for log in logs.borrow().iter() {
+            match vol_map.get(&log.asset_id) {
+                None => vol_map.insert(log.asset_id, log.icp_amount),
+                Some(vol) => vol_map.insert(log.asset_id, vol.clone() + log.icp_amount)
+            };
+        }
+    });
+
+    let mut vol_vec: Vec<(&u64, &Nat)> = vol_map.iter().collect();
+    vol_vec.sort_by(|a, b| {
+        a.1.partial_cmp(b.1).unwrap()
+    });
+    vol_vec.reverse();
+
+    let mut entries: Vec<(Asset, Nat)> = Vec::new();
+    for (asset_id, vol) in vol_vec {
+        let asset = ASSET_MAP.with(|map| {
+            map.borrow().get(asset_id)
+        }).unwrap();
+        entries.push((asset, vol.clone()));
+    }
+
+    entries
 }
 
 // (asset_id, balance)
@@ -641,7 +678,7 @@ async fn sell(asset_id: u64, amount: Nat) -> Result<(), Error> {
     let send_sell_result = icrc::icrc1_transfer(
         ICP_CA.with(|ca| ca.borrow().get().clone()), 
         caller, 
-        price - creator_fee.clone()
+        price - creator_fee.clone() - ICP_FEE
     ).await;
     match send_sell_result {
         icrc::TransferResult::Err(err) => {
@@ -663,7 +700,7 @@ async fn sell(asset_id: u64, amount: Nat) -> Result<(), Error> {
             let send_creator_fee_result = icrc::icrc1_transfer(
                 ICP_CA.with(|ca| ca.borrow().get().clone()), 
                 creator, 
-                creator_fee
+                creator_fee - ICP_FEE
             ).await;  
             match send_creator_fee_result {
                 icrc::TransferResult::Err(err) => {

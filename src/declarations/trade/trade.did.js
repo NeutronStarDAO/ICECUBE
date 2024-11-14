@@ -70,6 +70,11 @@ export const idlFactory = ({ IDL }) => {
     'buy' : IDL.Func([IDL.Nat64, IDL.Nat], [Result], []),
     'create' : IDL.Func([IDL.Text], [Result_1], []),
     'get_asset' : IDL.Func([IDL.Nat64], [IDL.Opt(Asset)], ['query']),
+    'get_asset_entires_sorted_by_vol' : IDL.Func(
+        [],
+        [IDL.Vec(IDL.Tuple(Asset, IDL.Nat))],
+        ['query'],
+      ),
     'get_asset_entries' : IDL.Func([], [IDL.Vec(Asset)], ['query']),
     'get_asset_entries_by_len' : IDL.Func(
         [IDL.Nat64, IDL.Nat64],
@@ -96,6 +101,7 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(IDL.Tuple(IDL.Nat64, IDL.Nat))],
         ['query'],
       ),
+    'get_icp_ca' : IDL.Func([], [IDL.Principal], ['query']),
     'get_pool_value' : IDL.Func([IDL.Nat64], [IDL.Opt(IDL.Nat)], ['query']),
     'get_recent_trade' : IDL.Func(
         [IDL.Nat64],
@@ -143,6 +149,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'remove' : IDL.Func([IDL.Nat64], [Result], []),
     'sell' : IDL.Func([IDL.Nat64, IDL.Nat], [Result], []),
+    'update_icp_ca' : IDL.Func([IDL.Principal], [IDL.Bool], []),
   });
 };
 export const init = ({ IDL }) => { return []; };

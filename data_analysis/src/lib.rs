@@ -265,13 +265,13 @@ async fn get_topic_post(topic: String, start: u64, len: u64) -> Vec<Post> {
     let mut post_range = Vec::new();
     let mut i = 0;
     for post in posts.iter().rev() {
-        i += 1;
-        if i >= start && i <= start + len - 1 {
+        if i >= start && i < start + len {
             post_range.push(post.clone());
         }
         if i > start + len - 1 {
             break;
         }
+        i += 1;
     };
 
     post_range

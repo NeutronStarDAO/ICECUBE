@@ -64,6 +64,7 @@ export interface _SERVICE {
   'buy' : ActorMethod<[bigint, bigint], Result>,
   'create' : ActorMethod<[string], Result_1>,
   'get_asset' : ActorMethod<[bigint], [] | [Asset]>,
+  'get_asset_entires_sorted_by_vol' : ActorMethod<[], Array<[Asset, bigint]>>,
   'get_asset_entries' : ActorMethod<[], Array<Asset>>,
   'get_asset_entries_by_len' : ActorMethod<[bigint, bigint], Array<Asset>>,
   'get_asset_index' : ActorMethod<[], bigint>,
@@ -74,6 +75,7 @@ export interface _SERVICE {
   'get_creator_premint' : ActorMethod<[], bigint>,
   'get_holders' : ActorMethod<[bigint], Array<[Principal, bigint]>>,
   'get_holdings' : ActorMethod<[Principal], Array<[bigint, bigint]>>,
+  'get_icp_ca' : ActorMethod<[], Principal>,
   'get_pool_value' : ActorMethod<[bigint], [] | [bigint]>,
   'get_recent_trade' : ActorMethod<[bigint], Array<TradeEvent>>,
   'get_remove_events' : ActorMethod<[], Array<RemoveEvent>>,
@@ -96,6 +98,7 @@ export interface _SERVICE {
   'is_posts_be_assets' : ActorMethod<[Array<string>], Array<[] | [bigint]>>,
   'remove' : ActorMethod<[bigint], Result>,
   'sell' : ActorMethod<[bigint, bigint], Result>,
+  'update_icp_ca' : ActorMethod<[Principal], boolean>,
 }
 export declare const idlFactory: IDL.InterfaceFactory;
 export declare const init: (args: { IDL: typeof IDL }) => IDL.Type[];

@@ -44,6 +44,7 @@ service : {
   buy : (nat64, nat) -> (Result);
   create : (text) -> (Result_1);
   get_asset : (nat64) -> (opt Asset) query;
+  get_asset_entires_sorted_by_vol : () -> (vec record { Asset; nat }) query;
   get_asset_entries : () -> (vec Asset) query;
   get_asset_entries_by_len : (nat64, nat64) -> (vec Asset) query;
   get_asset_index : () -> (nat64) query;
@@ -54,6 +55,7 @@ service : {
   get_creator_premint : () -> (nat64) query;
   get_holders : (nat64) -> (vec record { principal; nat }) query;
   get_holdings : (principal) -> (vec record { nat64; nat }) query;
+  get_icp_ca : () -> (principal) query;
   get_pool_value : (nat64) -> (opt nat) query;
   get_recent_trade : (nat64) -> (vec TradeEvent) query;
   get_remove_events : () -> (vec RemoveEvent) query;
@@ -75,4 +77,5 @@ service : {
   is_posts_be_assets : (vec text) -> (vec opt nat64) query;
   remove : (nat64) -> (Result);
   sell : (nat64, nat) -> (Result);
+  update_icp_ca : (principal) -> (bool);
 }
