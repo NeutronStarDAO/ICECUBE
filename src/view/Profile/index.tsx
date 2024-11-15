@@ -62,7 +62,7 @@ export const Profile = forwardRef(({scrollToTop}: { scrollToTop: Function }, ref
 
     if (titleRefCurrent && scrollContainer) {
       gsap.to(titleRefCurrent, {
-        backgroundColor: '#F0F4FF', // 你希望滚动到特定位置时改变的颜色
+        backgroundColor: '#F0F4FF', // 希望滚动到特定位置时改变的颜色
         scrollTrigger: {
           trigger: titleRefCurrent,
           scroller: scrollContainer,
@@ -196,7 +196,7 @@ const UserPanel = ({profile}: { profile?: profile_type }) => {
         message.success("Blocked successfully.")
         setIsBlack(true)
       } else {
-        message.error("Failed to block")
+        message.error("Failed to block.")
       }
     } catch (e: any) {
       message.warning(e?.message)
