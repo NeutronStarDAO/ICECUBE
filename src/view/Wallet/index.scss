@@ -238,7 +238,6 @@
     flex-direction: column;
     gap: 1.3rem;
 
-
     .token_button_wrap {
       display: flex;
       gap: 2rem;
@@ -247,6 +246,11 @@
       position: absolute;
       left: 10rem;
       bottom: 8rem;
+      z-index: 999;
     }
+  }
+
+  .wallet_main .wallet_holding {
+    margin-bottom: 30%;
   }
 }

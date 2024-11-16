@@ -19,7 +19,6 @@
 
     position: sticky;
     top: 0;
-    //background: white;
     z-index: 1;
   }
 
@@ -144,6 +143,10 @@
 }
 
 .dark_profile_main {
+  .profile_title {
+    background-color: #b9c9de;
+  }
+
   .profile_body .user_panel .avatar_panel .edit {
     color: black;
   }
