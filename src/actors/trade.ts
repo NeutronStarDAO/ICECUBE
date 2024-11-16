@@ -4,6 +4,7 @@ import {Asset, Result, Result_1, TradeEvent} from "../declarations/trade";
 import type {Principal} from "@dfinity/principal";
 
 export const tradeCid = "r4b4l-baaaa-aaaan-qzngq-cai"
+
 class Trade {
 
   private async getActor() {
@@ -35,6 +36,20 @@ class Trade {
       try {
         const actor = await this.getNoIdentityActor()
         const result = await actor.get_asset_entries_by_len(BigInt(start), BigInt(len)) as Asset[]
+        resolve(result)
+      } catch (e) {
+        reject(e)
+      }
+    })
+
+
+  }
+
+  get_asset_entires_sorted_by_vol() {
+    return new Promise<Array<[Asset, bigint]>>(async (resolve, reject) => {
+      try {
+        const actor = await this.getNoIdentityActor()
+        const result = await actor.get_asset_entires_sorted_by_vol() as Array<[Asset, bigint]>
         resolve(result)
       } catch (e) {
         reject(e)

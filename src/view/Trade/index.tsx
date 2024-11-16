@@ -25,7 +25,7 @@ export const Trade = () => {
   const [showLikeList, setShowLikeList] = useState(false)
   const [likeUsers, setLikeUsers] = useState<Profile[]>()
   const {post: selectPost} = useSelectPostStore()
-  const {userFeedCai,isAuth} = useAuth()
+  const {userFeedCai, isAuth} = useAuth()
   const loader = useRef(null)
   const navigate = useNavigate()
 
@@ -33,23 +33,37 @@ export const Trade = () => {
     !isAuth && navigate("/explore")
   }, [isAuth, navigate])
 
-  const getData = React.useCallback(async () => {
+  // const getData = React.useCallback(async () => {
+  //   if (!userFeedCai) return setData(undefined)
+  //   const assets = await tradeApi.get_asset_entries_by_len(page * pageCount, pageCount)
+  //   const postIds = assets.map(e => e.post_id)
+  //   const api = new Feed(userFeedCai)
+  //   const posts = await api.batch_get_post(postIds)
+  //   const res = posts.map((v, k) => {
+  //     return {...v, ...assets[k]}
+  //   })
+  //   if (page === 0) {
+  //     if (res.length < pageCount) setIsEnd(true)
+  //     return setData(res)
+  //   }
+  //   if (res.length < pageCount || res.length === 0) setIsEnd(true)
+  //   const newArr = [...(data ?? []), ...res]
+  //   setData(newArr);
+  // }, [page, userFeedCai])
+
+  const getData = async () => {
     if (!userFeedCai) return setData(undefined)
-    const assets = await tradeApi.get_asset_entries_by_len(page * pageCount, pageCount)
+    const res = await tradeApi.get_asset_entires_sorted_by_vol()
+    const assets = res.map(e => e[0])
     const postIds = assets.map(e => e.post_id)
     const api = new Feed(userFeedCai)
     const posts = await api.batch_get_post(postIds)
-    const res = posts.map((v, k) => {
+    const data = posts.map((v, k) => {
       return {...v, ...assets[k]}
     })
-    if (page === 0) {
-      if (res.length < pageCount) setIsEnd(true)
-      return setData(res)
-    }
-    if (res.length < pageCount || res.length === 0) setIsEnd(true)
-    const newArr = [...(data ?? []), ...res]
-    setData(newArr);
-  }, [page, userFeedCai])
+    setData(data)
+  }
+
 
   useEffect(() => {
     data && userApi.batchGetProfile(data.map(v => v.user)).then(e => setProfiles(e))
@@ -60,19 +74,19 @@ export const Trade = () => {
   }, [getData]);
 
 
-  useEffect(() => {
-    const ob = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting) {
-        setPage((prev) => prev + 1)
-      }
-    }, {threshold: 0})
-
-    loader.current && ob.observe(loader.current)
-
-    return () => {
-      loader.current && ob.unobserve(loader.current)
-    }
-  }, [loader.current])
+  // useEffect(() => {
+  //   const ob = new IntersectionObserver((entries) => {
+  //     if (entries[0].isIntersecting) {
+  //       setPage((prev) => prev + 1)
+  //     }
+  //   }, {threshold: 0})
+  //
+  //   loader.current && ob.observe(loader.current)
+  //
+  //   return () => {
+  //     loader.current && ob.unobserve(loader.current)
+  //   }
+  // }, [loader.current])
 
 
   return <>
@@ -91,9 +105,9 @@ export const Trade = () => {
                        updateFunction={getData}
                        post={v} setShowLikeList={setShowLikeList}/>
         }) : <Loading isShow={true} style={{width: "100%"}}/>}
-      <div ref={loader} style={{width: "100%", display: data && !isEnd ? "" : "none"}}>
-        <Loading isShow={true} style={{width: "100%"}}/>
-      </div>
+      {/*<div ref={loader} style={{width: "100%", display: data && !isEnd ? "" : "none"}}>*/}
+      {/*  <Loading isShow={true} style={{width: "100%"}}/>*/}
+      {/*</div>*/}
     </div>
   </>
 }
