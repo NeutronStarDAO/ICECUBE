@@ -17,6 +17,8 @@ Wanna learn more about this here project? Visit [here](https://forum.dfinity.org
 
 We'd be much obliged if y'all would try it out and share feedback. Happy trails!
 
+![image](https://github.com/user-attachments/assets/bb1bbf4e-b14f-493e-8320-a1feb0a20b02)
+
 # Develop
 
 ## Extract Candid
