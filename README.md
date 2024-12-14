@@ -1,38 +1,16 @@
-# IceCube🧊 (Proton) - A Social DApp
+# IceCube🧊 - A Social DApp 100% on chain
 
-<img src="https://github.com/user-attachments/assets/4245a30f-c93e-47f5-bf6c-9522bdac0c17" style="width: 25%;" />
+<img src="https://github.com/user-attachments/assets/4245a30f-c93e-47f5-bf6c-9522bdac0c17" style="width: 27%;" />
+
 <br>
 
-We gone and built a Social DApp, a DApp like X/Twitter but with modular data sovereignty based on the Actor model. She's got tutorials and everything to help get ya up to speed.
-
-## Design Philosophy
-
-Truly open Web3 DApp, modular data sovereignty based on the Actor model. 
-
-Each user has their own independent space, under their complete control.
-
-Users can even deploy their own independent Feed canister in code to interact with Proton. (This is cumbersome to do, only suitable for programmer users, they can develop advanced custom features for their canister) This allows the community to create custom advanced features.
-
-No matter whose data, as long as it's posted to a Feed, it is under the complete control of the Feed canister's owner.
+A Social DApp, a DApp like X/Twitter but with modular data sovereignty based on the Actor model.
 
 ## Getting Started
 Run：
 ```shell
 ./start.sh
 ```
-
-If'n you wanna try out the demo or get to contributin', mosey on over to the project website and have a looksie. Instructions over yonder'll help get ya started.
-
-## Canister Info
-
-- Frontend Canister : [2f64i-aaaaa-aaaan-qiu4q-cai](https://2f64i-aaaaa-aaaan-qiu4q-cai.icp0.io/)
-- User Canister : [j6sa4-jyaaa-aaaan-qgjxq-cai](https://dashboard.internetcomputer.org/canister/j6sa4-jyaaa-aaaan-qgjxq-cai)
-- RootPost Canister : [lyksr-aiaaa-aaaan-qgj2q-cai](https://dashboard.internetcomputer.org/canister/lyksr-aiaaa-aaaan-qgj2q-cai)
-- RootFeed Canister : [lrjzn-waaaa-aaaan-qgj3a-cai](https://dashboard.internetcomputer.org/canister/lrjzn-waaaa-aaaan-qgj3a-cai)
-- RootFetch Canister : [l7luf-nqaaa-aaaan-qgj2a-cai](https://dashboard.internetcomputer.org/canister/l7luf-nqaaa-aaaan-qgj2a-cai)
-- PostFetch Canister : [ldpou-2qaaa-aaaan-qgjya-cai](https://dashboard.internetcomputer.org/canister/ldpou-2qaaa-aaaan-qgjya-cai)
-- CommentFetch Canister : [lnnd4-baaaa-aaaan-qgjza-cai](https://dashboard.internetcomputer.org/canister/lnnd4-baaaa-aaaan-qgjza-cai)
-- LikeFetch Canister : [leoia-xiaaa-aaaan-qgjyq-cai](https://dashboard.internetcomputer.org/canister/leoia-xiaaa-aaaan-qgjyq-cai)
 
 ## More Info
 Wanna learn more about this here project? Visit [here](https://forum.dfinity.org/t/proton-a-socialfi-dapp-totally-base-on-actor-model/24832) for details on the architecture, roadmap, and more.
