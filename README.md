@@ -6,6 +6,8 @@
 
 A Social DApp, a DApp like X/Twitter but with modular data sovereignty based on the Actor model.
 
+![image](https://github.com/user-attachments/assets/77c7f4a3-4dc6-4b45-940a-8bbf70e94793)
+
 ## Getting Started
 Run：
 ```shell
